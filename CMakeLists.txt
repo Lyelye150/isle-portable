@@ -1,31 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(isle LANGUAGES CXX C VERSION 0.1)
 
-if(WIIU)
-  message(STATUS "Building for Wii U")
-
-  find_package(SDL2 REQUIRED)
-
-  add_library(LEGO1 STATIC ${CMAKE_SOURCE_DIR}/LEGO1/main.cpp)
-  target_include_directories(LEGO1 PUBLIC ${CMAKE_SOURCE_DIR}/LEGO1)
-  wut_add_exports(LEGO1 ${CMAKE_CURRENT_SOURCE_DIR}/LEGO1/LEGO1.exports)
-  wut_create_rpl(LEGO1)
-
-  add_executable(isle ${CMAKE_SOURCE_DIR}/ISLE/isleapp.cpp ISLE/islefiles.cpp)
-  target_include_directories(isle PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ISLE)
-  target_link_libraries(isle PRIVATE SDL2::SDL2)
-  wut_link_rpl(isle LEGO1)
-  wut_create_rpx(isle)
-
-else()
-  find_package(SDL3 CONFIG REQUIRED)
-  find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
-
-  add_executable(isle ISLE/isleapp.cpp ISLE/islefiles.cpp)
-  target_include_directories(isle PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ISLE)
-  target_link_libraries(isle PRIVATE SDL3::SDL3 Qt6::Core Qt6::Gui Qt6::Widgets)
-endif()
-
 if (IOS)
   set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED NO)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0")
@@ -78,7 +53,7 @@ option(ISLE_DEBUG "Enable imgui debug" ON)
 cmake_dependent_option(ISLE_USE_DX5 "Build with internal DirectX 5 SDK" "${NOT_MINGW}" "WIN32;CMAKE_SIZEOF_VOID_P EQUAL 4" OFF)
 cmake_dependent_option(ISLE_MINIWIN "Use miniwin" ON "NOT ISLE_USE_DX5" OFF)
 cmake_dependent_option(ISLE_EXTENSIONS "Use extensions" ON "NOT ISLE_USE_DX5" OFF)
-cmake_dependent_option(ISLE_BUILD_CONFIG "Build CONFIG.EXE application" ON "MSVC OR ISLE_MINIWIN;NOT NINTENDO_3DS;NOT WINDOWS_STORE" OFF)
+cmake_dependent_option(ISLE_BUILD_CONFIG "Build CONFIG.EXE application" OFF "MSVC OR ISLE_MINIWIN;NOT NINTENDO_3DS;NOT WINDOWS_STORE" OFF)
 cmake_dependent_option(ISLE_COMPILE_SHADERS "Compile shaders" ON "SDL_SHADERCROSS_BIN;TARGET Python3::Interpreter" OFF)
 option(CMAKE_POSITION_INDEPENDENT_CODE "Build with -fPIC" ON)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy")
@@ -537,7 +512,7 @@ if (ISLE_EXTENSIONS)
   )
 endif()
 
-if (ISLE_BUILD_APP AND NOT WIIU)
+if (ISLE_BUILD_APP)
   add_executable(isle WIN32
     ISLE/res/isle.rc
     ISLE/isleapp.cpp
@@ -618,6 +593,11 @@ endif()
   if (IOS)
     target_sources(isle PRIVATE
       ISLE/ios/config.cpp
+    )
+  endif()
+  if(WIIU)
+    target_sources(isle PRIVATE
+      ISLE/wiiu/config.cpp
     )
   endif()
   if(Python3_FOUND)
@@ -884,6 +864,28 @@ elseif(APPLE AND NOT IOS)
   set(CPACK_GENERATOR DragNDrop)
 else()
   set(CPACK_GENERATOR TGZ)
+endif()
+if(WIIU)
+  message(STATUS "Building for Wii U")
+  
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(SDL REQUIRED sdl2)
+
+  include_directories(${SDL_INCLUDE_DIRS})
+  link_directories(${SDL_LIBRARY_DIRS})
+  
+  wut_add_exports(lego1 ${CMAKE_CURRENT_SOURCE_DIR}/LEGO1/lego1.def)
+  wut_create_rpl(lego1)
+
+  wut_link_rpl(isle lego1)
+  wut_create_rpx(isle)
+
+else()
+  find_package(SDL3 CONFIG REQUIRED)
+  find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+
+  target_include_directories(isle PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ISLE)
+  target_link_libraries(isle PRIVATE SDL3::SDL3 Qt6::Core Qt6::Gui Qt6::Widgets)
 endif()
 
 include(CPack)
