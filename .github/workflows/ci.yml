@@ -237,6 +237,8 @@ jobs:
           path: |
             build/dist/isle-*
             build/dist/isleVR-*
+            build/dist/openxr_loader.dll
+            build/dist/openxr_loader.lib
             build/dist/*.AppImage
             build/dist/*.3dsx
             build/dist/*.cia
