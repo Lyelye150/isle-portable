@@ -611,10 +611,6 @@ if (ISLE_BUILD_APP)
 
     target_compile_definitions(isleVR PRIVATE ISLE_APP)
 
-    target_compile_definitions(isleVR PRIVATE
-    XR_USE_GRAPHICS_API_SOFTWARE
-    )
-
     # Links isleVR to OpenXR
     target_link_libraries(isleVR PRIVATE openxr_loader)
 
