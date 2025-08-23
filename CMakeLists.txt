@@ -42,7 +42,7 @@ find_program(SDL_SHADERCROSS_BIN NAMES "shadercross")
 find_package(Python3 3.12 COMPONENTS Interpreter)
 
 option(ISLE_BUILD_APP "Build isle application" ON)
-if(NOT IOS AND NOT EMSCRIPTEN AND NOT NINTENDO_3DS AND NOT ANDROID)
+if(NOT IOS AND NOT EMSCRIPTEN AND NOT NINTENDO_3DS AND NOT ANDROID AND NOT WINDOWS_STORE)
 option(ISLE_VR "Build and enables VR/XR support" ON)
 else()
 option(ISLE_VR "Build and enables VR/XR support" OFF)
@@ -584,6 +584,13 @@ if (ISLE_BUILD_APP)
     set_property(TARGET isle PROPERTY SUFFIX ".html")
   endif()
 
+  if(NOT ISLE_WERROR)
+    if(NOT MSVC)
+        add_compile_options(-Wno-error)
+        add_compile_options(-Wno-error=address)
+    endif()
+  endif()
+
   if(ISLE_VR)
     include(FetchContent)
     FetchContent_Declare(
@@ -598,9 +605,9 @@ if (ISLE_BUILD_APP)
     # samething as ISLE_BUILD_APP but with XR support
 
     add_executable(isleVR WIN32
-    ISLEVR/res/isle.rc
-    ISLEVR/isleapp.cpp
-    ISLEVR/islefiles.cpp
+    ${CMAKE_SOURCE_DIR}ISLEVR/res/isle.rc
+    ${CMAKE_SOURCE_DIR}ISLEVR/isleapp.cpp
+    ${CMAKE_SOURCE_DIR}ISLEVR/islefiles.cpp
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/arrow_bmp.h
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/busy_bmp.h
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/no_bmp.h
