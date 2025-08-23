@@ -42,7 +42,7 @@ find_program(SDL_SHADERCROSS_BIN NAMES "shadercross")
 find_package(Python3 3.12 COMPONENTS Interpreter)
 
 option(ISLE_BUILD_APP "Build isle application" ON)
-option(ISLE_VR "Build and enables VR/XR support" ON)
+option(ISLE_VR "Build and enables VR/XR support" ON "NOT IOS;NOT EMSCRIPTEN;NOT NINTENDO_3DS;NOT WINDOWS_STORE;NOT ANDROID" OFF)
 option(ISLE_BUILD_ASSETS "Build assets from the /assets directory" OFF)
 option(ISLE_ASAN "Enable Address Sanitizer" OFF)
 option(ISLE_UBSAN "Enable Undefined Behavior Sanitizer" OFF)
