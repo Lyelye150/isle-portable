@@ -583,6 +583,7 @@ if (ISLE_BUILD_APP)
     target_compile_definitions(isle PRIVATE "ISLE_EMSCRIPTEN_HOST=\"${ISLE_EMSCRIPTEN_HOST}\"")
     set_property(TARGET isle PROPERTY SUFFIX ".html")
   endif()
+endif()
 
 if(ISLE_VR)
 set(BUILD_WITH_WERROR OFF CACHE BOOL "" FORCE)
