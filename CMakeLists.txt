@@ -626,6 +626,11 @@ endif()
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/busy_bmp.h
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/no_bmp.h
     )
+
+    if(ISLE_VR AND MSVC)
+    target_compile_options(isleVR PRIVATE /wd4005)
+    endif()
+
     list(APPEND isleVR_targets isleVR)
     if (WIN32)
       add_custom_command(TARGET isleVR POST_BUILD
