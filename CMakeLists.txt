@@ -621,7 +621,7 @@ endif()
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/busy_bmp.h
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/no_bmp.h
     )
-    list(APPEND isle_targets isle)
+    list(APPEND isleVR_targets isleVR)
     if (WIN32)
       add_custom_command(TARGET isleVR POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_RUNTIME_DLLS:isle> "$<TARGET_FILE_DIR:isle>"
@@ -865,6 +865,15 @@ if (NOT (NINTENDO_3DS OR WINDOWS_STORE))
     BUNDLE DESTINATION "."
   )
 endif()
+
+if(ISLE_VR)
+install(TARGETS ${isleVR_targets}
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        BUNDLE DESTINATION "."
+    )
+endif()
+
 if (ISLE_BUILD_CONFIG)
   if(WIN32)
     find_program(WINDEPLOYQT_EXECUTABLE windeployqt)
