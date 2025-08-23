@@ -584,22 +584,27 @@ if (ISLE_BUILD_APP)
     set_property(TARGET isle PROPERTY SUFFIX ".html")
   endif()
 
-  if(MINGW)
-    if(NOT ISLE_WERROR)
-        add_compile_options(-Wno-error)
-        add_compile_options(-Wno-error=address)
-    endif()
-  endif()
-
-  if(ISLE_VR)
+if(ISLE_VR)
     include(FetchContent)
     FetchContent_Declare(
-    OpenXR-SDK-Source
-    GIT_REPOSITORY https://github.com/KhronosGroup/OpenXR-SDK-Source.git
-    GIT_TAG d0f5b6ab67e069fa52869625a1fc341bf5cab3d0
+      OpenXR-SDK-Source
+      GIT_REPOSITORY https://github.com/KhronosGroup/OpenXR-SDK-Source.git
+      GIT_TAG d0f5b6ab67e069fa52869625a1fc341bf5cab3d0
     )
-    FetchContent_MakeAvailable(OpenXR-SDK-Source)
-  endif()
+    FetchContent_GetProperties(OpenXR-SDK-Source)
+    if(NOT OpenXR-SDK-Source_POPULATED)
+        FetchContent_Populate(OpenXR-SDK-Source)
+        add_subdirectory(${OpenXR-SDK-Source_SOURCE_DIR} ${OpenXR-SDK-Source_BINARY_DIR})
+    endif()
+
+    if(MINGW)
+        foreach(tgt XrApiLayer_core_validation)
+            if(TARGET ${tgt})
+                target_compile_options(${tgt} PRIVATE -Wno-error -Wno-error=address)
+            endif()
+        endforeach()
+    endif()
+endif()
 
   if(ISLE_VR)
     # samething as ISLE_BUILD_APP but with XR support
