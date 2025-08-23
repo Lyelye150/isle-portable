@@ -708,7 +708,6 @@ endif()
       )
     endif()
   endif()
-endif()
 
 if (ISLE_BUILD_CONFIG)
   find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
