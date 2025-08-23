@@ -163,7 +163,12 @@ jobs:
             -DENABLE_CLANG_TIDY=${{ !!matrix.clang-tidy  }} \
             -DISLE_WERROR=${{ !!matrix.werror }} \
             -DISLE_DEBUG=${{ matrix.debug || 'OFF' }} \
+            -DISLE_VR=ON \
             -Werror=dev
+
+      - name: Build OpenXR Loader
+      run: |
+        cmake --build build/_deps/openxr-sdk-source-build --config Release
 
       - name: Build (CMake)
         if: ${{ !matrix.android }}
@@ -235,6 +240,7 @@ jobs:
           name: '${{ matrix.name }}'
           path: |
             build/dist/isle-*
+            build/dist/isleVR-*
             build/dist/*.AppImage
             build/dist/*.3dsx
             build/dist/*.cia
