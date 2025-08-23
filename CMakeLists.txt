@@ -657,6 +657,9 @@ endif()
     # Allow unconditional include of miniwin/miniwindevice.h
     target_link_libraries(isleVR PRIVATE miniwin-headers)
 
+    # links isleVR to miniwin
+    target_compile_definitions(isleVR PRIVATE MINIWIN)
+
     # Vector math
     target_link_libraries(isleVR PRIVATE Vec::Vec)
 
