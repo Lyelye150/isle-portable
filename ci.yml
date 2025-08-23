@@ -166,6 +166,11 @@ jobs:
             -DISLE_VR=ON \
             -Werror=dev
 
+      - name: Build OpenXR Loader
+      run: |
+        cmake --build build/_deps/openxr-sdk-source-build --config Release
+
+
       - name: Build (CMake)
         if: ${{ !matrix.android }}
         run: cmake --build build --verbose --config Release
