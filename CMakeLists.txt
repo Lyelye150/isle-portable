@@ -627,9 +627,12 @@ endif()
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/no_bmp.h
     )
 
-    if(ISLE_VR AND MSVC)
-    target_compile_definitions(isleVR PRIVATE NOMINMAX)
+    if(MSVC)
     target_compile_options(isleVR PRIVATE /wd4005)
+
+    target_compile_definitions(isleVR PRIVATE NOMINMAX)
+
+    target_compile_options(isleVR PRIVATE /Zc:__cplusplus)
     endif()
 
     list(APPEND isleVR_targets isleVR)
