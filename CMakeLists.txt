@@ -598,13 +598,38 @@ set(BUILD_CONFORMANCE_TESTS OFF CACHE BOOL "" FORCE)
 endif()
 
 if(ISLE_VR)
-  include(FetchContent)
-  FetchContent_Declare(
-    OpenXR-SDK-Source
-    GIT_REPOSITORY https://github.com/KhronosGroup/OpenXR-SDK-Source.git
-    GIT_TAG d0f5b6ab67e069fa52869625a1fc341bf5cab3d0
-  )
-  FetchContent_MakeAvailable(OpenXR-SDK-Source)
+    # Prebuilt OpenXR (Windows)
+  set(OPENXR_SDK_DIR "${CMAKE_SOURCE_DIR}/3rdparty/openxr_loader_WIN")
+
+  # Choose arch dir (x64/x86)
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(OPENXR_ARCH_DIR x64)
+  else()
+    set(OPENXR_ARCH_DIR x86)
+  endif()
+
+  # Paths
+  set(OPENXR_INC "${OPENXR_SDK_DIR}/include")
+  set(OPENXR_LIB "${OPENXR_SDK_DIR}/${OPENXR_ARCH_DIR}/lib/openxr_loader.lib")
+  set(OPENXR_DLL "${OPENXR_SDK_DIR}/${OPENXR_ARCH_DIR}/bin/openxr_loader.dll")
+
+  # Headers
+  target_include_directories(isleVR PRIVATE "${OPENXR_INC}")
+
+  # Link (MSVC import lib)
+  if(MSVC)
+    if(NOT EXISTS "${OPENXR_LIB}")
+      message(FATAL_ERROR "OpenXR import lib not found: ${OPENXR_LIB}")
+    endif()
+    target_link_libraries(isleVR PRIVATE "${OPENXR_LIB}")
+  elseif(MINGW)
+    message(WARNING "Using prebuilt MSVC OpenXR .lib; MinGW cannot link this. Turn ISLE_VR OFF for MinGW or provide a MinGW .a import lib.")
+  endif()
+
+  # Ensure DLL lands next to isleVR.exe
+  add_custom_command(TARGET isleVR POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${OPENXR_DLL}" $<TARGET_FILE_DIR:isleVR>)
 
   if(MINGW)
     foreach(tgt XrApiLayer_core_validation)
@@ -646,19 +671,8 @@ endif()
 
     target_compile_definitions(isleVR PRIVATE ISLE_APP)
 
-    # Include OpenXR headers
-    target_include_directories(isleVR PRIVATE
-        ${CMAKE_SOURCE_DIR}/build/_deps/openxr-sdk-source-src/include)
-
-    # Link OpenXR library
-    target_link_libraries(isleVR PRIVATE
-        ${CMAKE_SOURCE_DIR}/build/_deps/openxr-sdk-source-build/lib/x64/openxr_loader.lib)
-
-    # Link openxr_loader
-    add_custom_command(TARGET isleVR POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/build/_deps/openxr-sdk-source-build/bin/x64/openxr_loader.dll"
-        $<TARGET_FILE_DIR:isleVR>)
+    # links isleVR to openxr_loader.lib
+    target_link_libraries(isleVR PRIVATE "${OPENXR_LIB}")
 
     # Use internal DirectX 5 if required
     target_link_libraries(isleVR PRIVATE $<$<BOOL:${ISLE_USE_DX5}>:DirectX5::DirectX5>)
@@ -896,11 +910,15 @@ if (NOT (NINTENDO_3DS OR WINDOWS_STORE))
 endif()
 
 if(ISLE_VR)
-install(TARGETS ${isleVR_targets}
-        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        BUNDLE DESTINATION "."
-    )
+  install(TARGETS ${isleVR_targets}
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    BUNDLE DESTINATION "."
+  )
+
+  install(FILES "${OPENXR_DLL}"
+    DESTINATION "${CMAKE_INSTALL_BINDIR}"
+  )
 endif()
 
 if (ISLE_BUILD_CONFIG)
