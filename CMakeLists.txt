@@ -621,6 +621,7 @@ endif()
     add_executable(isleVR WIN32
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/isle.rc
     ${CMAKE_SOURCE_DIR}/ISLEVR/isleapp.cpp
+    ${CMAKE_SOURCE_DIR}/ISLEVR/header.cpp
     ${CMAKE_SOURCE_DIR}/ISLEVR/islefiles.cpp
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/arrow_bmp.h
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/busy_bmp.h
@@ -645,8 +646,19 @@ endif()
 
     target_compile_definitions(isleVR PRIVATE ISLE_APP)
 
-    # Links isleVR to OpenXR
-    target_link_libraries(isleVR PRIVATE openxr_loader)
+    # Include OpenXR headers
+    target_include_directories(isleVR PRIVATE
+        ${CMAKE_SOURCE_DIR}/build/_deps/openxr-sdk-source-src/include)
+
+    # Link OpenXR library
+    target_link_libraries(isleVR PRIVATE
+        ${CMAKE_SOURCE_DIR}/build/_deps/openxr-sdk-source-build/lib/x64/openxr_loader.lib)
+
+    # Link openxr_loader
+    add_custom_command(TARGET isleVR POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_SOURCE_DIR}/build/_deps/openxr-sdk-source-build/bin/x64/openxr_loader.dll"
+        $<TARGET_FILE_DIR:isleVR>)
 
     # Use internal DirectX 5 if required
     target_link_libraries(isleVR PRIVATE $<$<BOOL:${ISLE_USE_DX5}>:DirectX5::DirectX5>)
