@@ -628,6 +628,7 @@ endif()
     )
 
     if(ISLE_VR AND MSVC)
+    target_compile_definitions(isleVR PRIVATE NOMINMAX)
     target_compile_options(isleVR PRIVATE /wd4005)
     endif()
 
