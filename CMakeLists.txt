@@ -585,27 +585,28 @@ if (ISLE_BUILD_APP)
   endif()
 
 if(ISLE_VR)
-    include(FetchContent)
-    FetchContent_Declare(
-      OpenXR-SDK-Source
-      GIT_REPOSITORY https://github.com/KhronosGroup/OpenXR-SDK-Source.git
-      GIT_TAG d0f5b6ab67e069fa52869625a1fc341bf5cab3d0
-    )
-    FetchContent_GetProperties(OpenXR-SDK-Source)
-    if(NOT OpenXR-SDK-Source_POPULATED)
-        FetchContent_MakeAvailable(OpenXR-SDK-Source)
-        add_subdirectory(${OpenXR-SDK-Source_SOURCE_DIR})
-        add_subdirectory(${OpenXR-SDK-Source_BINARY_DIR})
-    endif()
+set(BUILD_WITH_WERROR OFF CACHE BOOL "" FORCE)
+set(BUILD_API_LAYERS OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(BUILD_CONFORMANCE_TESTS OFF CACHE BOOL "" FORCE)
 endif()
 
-    if(MINGW)
-        foreach(tgt XrApiLayer_core_validation)
-            if(TARGET ${tgt})
-                target_compile_options(${tgt} PRIVATE -Wno-error -Wno-error=address)
-            endif()
-        endforeach()
-    endif()
+if(ISLE_VR)
+  include(FetchContent)
+  FetchContent_Declare(
+    OpenXR-SDK-Source
+    GIT_REPOSITORY https://github.com/KhronosGroup/OpenXR-SDK-Source.git
+    GIT_TAG d0f5b6ab67e069fa52869625a1fc341bf5cab3d0
+  )
+  FetchContent_MakeAvailable(OpenXR-SDK-Source)
+
+  if(MINGW)
+    foreach(tgt XrApiLayer_core_validation)
+      if(TARGET ${tgt})
+        target_compile_options(${tgt} PRIVATE -Wno-error -Wno-error=address)
+      endif()
+    endforeach()
+  endif()
 endif()
 
   if(ISLE_VR)
