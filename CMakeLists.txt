@@ -594,10 +594,8 @@ if(ISLE_VR)
     FetchContent_GetProperties(OpenXR-SDK-Source)
     if(NOT OpenXR-SDK-Source_POPULATED)
         FetchContent_MakeAvailable(OpenXR-SDK-Source)
-        add_subdirectory(
-            ${OpenXR-SDK-Source_SOURCE_DIR}
-            ${OpenXR-SDK-Source_BINARY_DIR}
-        )
+        add_subdirectory(${OpenXR-SDK-Source_SOURCE_DIR})
+        add_subdirectory(${OpenXR-SDK-Source_BINARY_DIR})
     endif()
 endif()
 
