@@ -60,9 +60,7 @@
 #include "emscripten/window.h"
 #endif
 
-#ifdef ANDROID_META
 #include <openxr/openxr.h>
-#endif
 
 DECOMP_SIZE_ASSERT(IsleApp, 0x8c)
 

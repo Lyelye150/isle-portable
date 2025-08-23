@@ -1,3 +1,5 @@
+#include <openxr/openxr.h>
+
 const char* g_files[46] = {
 	"/LEGO/Scripts/CREDITS.SI",
 	"/LEGO/Scripts/INTRO.SI",

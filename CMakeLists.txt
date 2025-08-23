@@ -621,11 +621,12 @@ endif()
     add_executable(isleVR WIN32
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/isle.rc
     ${CMAKE_SOURCE_DIR}/ISLEVR/isleapp.cpp
+    ${CMAKE_SOURCE_DIR}/ISLEVR/header.cpp
     ${CMAKE_SOURCE_DIR}/ISLEVR/islefiles.cpp
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/arrow_bmp.h
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/busy_bmp.h
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/no_bmp.h
-    ${CMAKE_SOURCE_DIR}/ISLEVR/header.cpp)
+    )
 
     if(MSVC)
     target_compile_options(isleVR PRIVATE /wd4005)
