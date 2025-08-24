@@ -641,12 +641,7 @@ endif()
     target_link_libraries(isleVR PRIVATE miniwin-headers)
 
     # Define MINIWIN macro for conditional compilation
-    target_compile_definitions(isleVR PRIVATE MINIWIN)
-
-    # Include miniwin internal headers to fix errors in header.cpp
-    target_include_directories(isleVR PRIVATE
-    ${CMAKE_SOURCE_DIR}/miniwin/src/internal
-    )
+    target_compile_definitions(isleVR PRIVATE VRDEC)
 
     # Vector math
     target_link_libraries(isleVR PRIVATE Vec::Vec)
