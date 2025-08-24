@@ -22,7 +22,7 @@ jobs:
         run: |
           git diff --exit-code
 
-  build:
+    build:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container || '' }}
