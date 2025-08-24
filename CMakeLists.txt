@@ -597,49 +597,6 @@ set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(BUILD_CONFORMANCE_TESTS OFF CACHE BOOL "" FORCE)
 endif()
 
-if(ISLE_VR)
-    # Prebuilt OpenXR (Windows)
-  set(OPENXR_SDK_DIR "${CMAKE_SOURCE_DIR}/3rdparty/openxr_loader_WIN")
-
-  # Choose arch dir (x64/x86)
-  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(OPENXR_ARCH_DIR x64)
-  else()
-    set(OPENXR_ARCH_DIR x86)
-  endif()
-
-  # Paths
-  set(OPENXR_INC "${OPENXR_SDK_DIR}/include")
-  set(OPENXR_LIB "${OPENXR_SDK_DIR}/${OPENXR_ARCH_DIR}/lib/openxr_loader.lib")
-  set(OPENXR_DLL "${OPENXR_SDK_DIR}/${OPENXR_ARCH_DIR}/bin/openxr_loader.dll")
-
-  # Headers
-  target_include_directories(isleVR PRIVATE "${OPENXR_INC}")
-
-  # Link (MSVC import lib)
-  if(MSVC)
-    if(NOT EXISTS "${OPENXR_LIB}")
-      message(FATAL_ERROR "OpenXR import lib not found: ${OPENXR_LIB}")
-    endif()
-    target_link_libraries(isleVR PRIVATE "${OPENXR_LIB}")
-  elseif(MINGW)
-    message(WARNING "Using prebuilt MSVC OpenXR .lib; MinGW cannot link this. Turn ISLE_VR OFF for MinGW or provide a MinGW .a import lib.")
-  endif()
-
-  # Ensure DLL lands next to isleVR.exe
-  add_custom_command(TARGET isleVR POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${OPENXR_DLL}" $<TARGET_FILE_DIR:isleVR>)
-
-  if(MINGW)
-    foreach(tgt XrApiLayer_core_validation)
-      if(TARGET ${tgt})
-        target_compile_options(${tgt} PRIVATE -Wno-error -Wno-error=address)
-      endif()
-    endforeach()
-  endif()
-endif()
-
   if(ISLE_VR)
     # samething as ISLE_BUILD_APP but with XR support
 
@@ -695,6 +652,40 @@ endif()
     endif()
     # Link LEGO1
     target_link_libraries(isleVR PRIVATE lego1)
+  endif()
+
+  if(ISLE_VR)
+    # Only MSVC Windows builds get OpenXR
+    set(OPENXR_SDK_DIR "${CMAKE_SOURCE_DIR}/3rdparty/openxr_loader_WIN")
+
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(OPENXR_ARCH_DIR x64)
+    else()
+    message(FATAL_ERROR "OpenXR is only supported for 64-bit builds")
+    endif()
+
+
+    set(OPENXR_INC "${OPENXR_SDK_DIR}/include")
+    set(OPENXR_LIB "${OPENXR_SDK_DIR}/${OPENXR_ARCH_DIR}/lib/openxr_loader.lib")
+    set(OPENXR_DLL "${OPENXR_SDK_DIR}/${OPENXR_ARCH_DIR}/bin/openxr_loader.dll")
+
+    target_include_directories(isleVR PRIVATE "${OPENXR_INC}")
+    target_link_libraries(isleVR PRIVATE "${OPENXR_LIB}")
+
+    add_custom_command(TARGET isleVR POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${OPENXR_DLL}" $<TARGET_FILE_DIR:isleVR>)
+
+  elseif(ISLE_VR)
+      message(STATUS "Skipping OpenXR for non-MSVC or unsupported platform")
+  endif()
+
+  if(MINGW)
+      foreach(tgt XrApiLayer_core_validation)
+          if(TARGET ${tgt})
+              target_compile_options(${tgt} PRIVATE -Wno-error -Wno-error=address)
+          endif()
+      endforeach()
   endif()
 
   if(NINTENDO_3DS)
