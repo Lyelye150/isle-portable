@@ -151,7 +151,7 @@ jobs:
               -DISLE_DEBUG=${{ matrix.debug || 'OFF' }} \
               -Werror=dev"
 
-      - name: Download OpenXR Loader
+      - name: Download OpenXR Loader (MSVC AND WINDOWS ONLY)
         if: ${{ matrix.msvc }}
         run: |
           mkdir -p 3rdparty/openxr_loader_WIN
@@ -238,6 +238,12 @@ jobs:
         if: matrix.build-assets
         run: (cd build/assets && zip -r ../dist/isle-assets.zip .)
 
+     - name: Package OpenXR_loader.lib
+       if: ${{ matrix.msvc }}
+       run: |
+         mkdir -p build/dist
+         cp 3rdparty/openxr_loader_WIN/x64/lib/openxr_loader.lib build/dist/
+
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -246,7 +252,6 @@ jobs:
             build/dist/isle-*
             build/dist/isleVR-*
             build/dist/openxr_loader.dll
-            build/dist/openxr_loader.lib
             build/dist/*.AppImage
             build/dist/*.3dsx
             build/dist/*.cia
