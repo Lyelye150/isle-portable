@@ -237,12 +237,6 @@ jobs:
         if: matrix.build-assets
         run: (cd build/assets && zip -r ../dist/isle-assets.zip .)
 
-     - name: Package OpenXR_loader.lib
-       if: ${{ matrix.msvc }}
-       run: |
-         mkdir -p build/dist
-         cp 3rdparty/openxr_loader_WIN/x64/lib/openxr_loader.lib build/dist/
-
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
