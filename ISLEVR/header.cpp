@@ -2,7 +2,7 @@
 #include <iostream>
 
 #ifdef MINIWIN
-#include "miniwin/src/internal/miniwin.h"
+#include "miniwin.h"
 #endif
 
 bool isVRHeadsetConnected() { return false; }
