@@ -641,6 +641,8 @@ endif()
     target_link_libraries(isleVR PRIVATE miniwin-headers)
 
     # Define MINIWIN macro for conditional compilation
+    target_compile_definitions(isleVR PRIVATE MINIWIN)
+
     target_compile_definitions(isleVR PRIVATE VRDEC)
 
     # Vector math
