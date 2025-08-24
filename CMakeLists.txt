@@ -654,31 +654,26 @@ endif()
     target_link_libraries(isleVR PRIVATE lego1)
   endif()
 
-  if(ISLE_VR)
-    # Only MSVC Windows builds get OpenXR
+if(ISLE_VR)
     set(OPENXR_SDK_DIR "${CMAKE_SOURCE_DIR}/3rdparty/openxr_loader_WIN")
 
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(OPENXR_ARCH_DIR x64)
+        set(OPENXR_ARCH_DIR x64)
+
+        set(OPENXR_INC "${OPENXR_SDK_DIR}/include")
+        set(OPENXR_LIB "${OPENXR_SDK_DIR}/${OPENXR_ARCH_DIR}/lib/openxr_loader.lib")
+        set(OPENXR_DLL "${OPENXR_SDK_DIR}/${OPENXR_ARCH_DIR}/bin/openxr_loader.dll")
+
+        target_include_directories(isleVR PRIVATE "${OPENXR_INC}")
+        target_link_libraries(isleVR PRIVATE "${OPENXR_LIB}")
+
+        add_custom_command(TARGET isleVR POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${OPENXR_DLL}" $<TARGET_FILE_DIR:isleVR>)
     else()
-    message(FATAL_ERROR "OpenXR is only supported for 64-bit builds")
+        message(STATUS "OpenXR is only supported for 64-bit builds; skipping")
     endif()
-
-
-    set(OPENXR_INC "${OPENXR_SDK_DIR}/include")
-    set(OPENXR_LIB "${OPENXR_SDK_DIR}/${OPENXR_ARCH_DIR}/lib/openxr_loader.lib")
-    set(OPENXR_DLL "${OPENXR_SDK_DIR}/${OPENXR_ARCH_DIR}/bin/openxr_loader.dll")
-
-    target_include_directories(isleVR PRIVATE "${OPENXR_INC}")
-    target_link_libraries(isleVR PRIVATE "${OPENXR_LIB}")
-
-    add_custom_command(TARGET isleVR POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${OPENXR_DLL}" $<TARGET_FILE_DIR:isleVR>)
-
-  elseif(ISLE_VR)
-      message(STATUS "Skipping OpenXR for non-MSVC or unsupported platform")
-  endif()
+endif(
 
   if(MINGW)
       foreach(tgt XrApiLayer_core_validation)
