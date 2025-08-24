@@ -1,5 +1,7 @@
 #define INITGUID
 
+#include "header.h"
+
 #include "isleapp.h"
 
 #include "3dmanager/lego3dmanager.h"
@@ -277,22 +279,24 @@ void IsleApp::SetupVideoFlags(
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 {
-	*appstate = NULL;
+    *appstate = NULL;
 
-	SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
-	SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+    checkVR();
 
-	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC)) {
-		char buffer[256];
-		SDL_snprintf(
-			buffer,
-			sizeof(buffer),
-			"\"LEGO® Island\" failed to start.\nPlease quit all other applications and try again.\nSDL error: %s",
-			SDL_GetError()
-		);
-		Any_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "LEGO® Island Error", buffer, NULL);
-		return SDL_APP_FAILURE;
-	}
+    SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
+    SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC)) {
+        char buffer[256];
+        SDL_snprintf(
+            buffer,
+            sizeof(buffer),
+            "\"LEGO® Island\" failed to start.\nPlease quit all other applications and try again.\nSDL error: %s",
+            SDL_GetError()
+        );
+        Any_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "LEGO® Island Error", buffer, NULL);
+        return SDL_APP_FAILURE;
+    }
 
 	// [library:window]
 	// Original game checks for an existing instance here.
@@ -923,22 +927,13 @@ MxResult IsleApp::SetupWindow()
 		return FAILURE;
 	}
 
-	SDL_IOStream* icon_stream = SDL_IOFromMem(isle_bmp, isle_bmp_len);
-
-	if (icon_stream) {
-		SDL_Surface* icon = SDL_LoadBMP_IO(icon_stream, true);
-
-		if (icon) {
-			SDL_SetWindowIcon(window, icon);
-			SDL_DestroySurface(icon);
-		}
-		else {
-			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load icon: %s", SDL_GetError());
-		}
-	}
-	else {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to open SDL_IOStream for icon: %s", SDL_GetError());
-	}
+SDL_Surface* icon_surface = SDL_LoadBMP("res/isleVR.bmp");
+if (icon_surface) {
+    SDL_SetWindowIcon(window, icon_surface);
+    SDL_FreeSurface(icon_surface);
+} else {
+    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load window icon: %s", SDL_GetError());
+}
 
 	if (!SetupLegoOmni()) {
 		return FAILURE;
