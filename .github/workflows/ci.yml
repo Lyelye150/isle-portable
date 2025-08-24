@@ -177,6 +177,12 @@ jobs:
         if: ${{ !matrix.android }}
         run: cmake --build build --verbose --config Release
 
+      - name: Package OpenXR_loader.lib
+        if: ${{ matrix.msvc }}
+        run: |
+          mkdir -p "build/dist/isle-0.1-Windows-x64/lib"
+          cp 3rdparty/openxr_loader_WIN/x64/lib/openxr_loader.lib "build/dist/isle-0.1-Windows-x64/lib"
+
       - name: Package (CPack)
         if: ${{ !matrix.n3ds && !matrix.android }}
         run: |
@@ -232,12 +238,6 @@ jobs:
         run: |
           mkdir -p build/dist
           mv  android-project/app/build/outputs/apk/*/*.apk build/dist/
-
-      - name: Package OpenXR_loader.lib
-        if: ${{ matrix.msvc }}
-        run: |
-          mkdir -p "build/dist/isle-0.1-Windows-x64/lib"
-          cp 3rdparty/openxr_loader_WIN/x64/lib/openxr_loader.lib "build/dist/isle-0.1-Windows-x64/lib"
 
       - name: Package Assets Separately
         if: matrix.build-assets
