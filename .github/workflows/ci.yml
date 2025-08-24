@@ -8,16 +8,19 @@ concurrency:
 
 jobs:
   clang-format:
-    name: 'clang-format'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run clang-format
-        run: |
-          find CONFIG LEGO1 ISLE miniwin -iname '*.h' -o -iname '*.cpp' | \
-            xargs pipx run "clang-format>=17,<18" --style=file -i
-      - name: Check diff
-        run: git diff --exit-code
+      name: 'clang-format'
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Run clang-format
+          run: |
+            find CONFIG LEGO1 ISLE miniwin -iname '*.h' -o -iname '*.cpp' | xargs \
+            pipx run "clang-format>=17,<18" \
+              --style=file \
+              -i
+        - name: Check diff
+          run: |
+            git diff --exit-code
 
     build:
     name: ${{ matrix.name }}
