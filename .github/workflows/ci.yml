@@ -47,6 +47,7 @@ jobs:
           - { name: 'Nintendo 3DS',        os: 'ubuntu-latest',  generator: 'Ninja',                 dx5: false, config: false, n3ds: true,  werror: true,   clang-tidy: false,  container: 'devkitpro/devkitarm:latest', cmake-args: '-DCMAKE_TOOLCHAIN_FILE=/opt/devkitpro/cmake/3DS.cmake' }
           - { name: 'Xbox One',            os: 'windows-latest', generator: 'Visual Studio 17 2022', dx5: false, config: false, msvc: true,  werror: false,  clang-tidy: false,  vc-arch: 'amd64', cmake-args: '-DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION=10.0.26100.0', xbox-one: true}
           - { name: 'Android',             os: 'ubuntu-latest',  generator: 'Ninja',                 dx5: false, config: false, android: true, werror: true, clang-tidy: false,}
+
     steps:
       - name: Setup vcvars
         if: ${{ !!matrix.msvc }}
@@ -65,6 +66,7 @@ jobs:
             ${{ matrix.msys-env }}-ninja
             ${{ matrix.msys-env }}-clang-tools-extra
             ${{ (matrix.config && format('{0}-qt6-base', matrix.msys-env)) || '' }}
+
       - name: Install Qt
         if: ${{ !!matrix.msvc && matrix.config }}
         uses: jurplel/install-qt-action@v4
@@ -79,6 +81,7 @@ jobs:
           wget https://github.com/3DSGuy/Project_CTR/releases/download/makerom-v0.18/makerom-v0.18-ubuntu_x86_64.zip
           unzip "makerom-v0.18-ubuntu_x86_64.zip" "makerom" -d "/opt/devkitpro/tools/bin"
           chmod a+x /opt/devkitpro/tools/bin/makerom
+
       - name: Install Linux dependencies (apt-get)
         if: ${{ matrix.linux }}
         run: |
@@ -87,6 +90,7 @@ jobs:
             libx11-dev libxext-dev libxrandr-dev libxrender-dev libxfixes-dev libxi-dev libxinerama-dev \
             libxcursor-dev libwayland-dev libxkbcommon-dev wayland-protocols libgl1-mesa-dev qt6-base-dev \
             libasound2-dev qt6-xdgdesktopportal-platformtheme
+
       - name: Install macOS dependencies (brew)
         if: ${{ matrix.brew }}
         run: |
@@ -146,12 +150,14 @@ jobs:
               -DISLE_WERROR=${{ !!matrix.werror }} \
               -DISLE_DEBUG=${{ matrix.debug || 'OFF' }} \
               -Werror=dev"
+
       - name: Download OpenXR Loader
         if: ${{ matrix.msvc }}
         run: |
           mkdir -p 3rdparty/openxr_loader_WIN
           curl -L -o openxr_loader_windows.zip https://github.com/KhronosGroup/OpenXR-SDK-Source/releases/download/release-1.1.50/openxr_loader_windows-1.1.50.zip
           unzip -o openxr_loader_windows.zip -d 3rdparty/openxr_loader_WIN
+
       - name: Configure (CMake)
         if: ${{ !matrix.android }}
         run: |
@@ -166,6 +172,7 @@ jobs:
             -DISLE_DEBUG=${{ matrix.debug || 'OFF' }} \
             -DISLE_VR=ON \
             -Werror=dev
+
       - name: Build (CMake)
         if: ${{ !matrix.android }}
         run: cmake --build build --verbose --config Release
@@ -188,6 +195,7 @@ jobs:
             echo "Package creation failed after $max_tries attempts."
             exit 1
           fi
+
       - name: Install linuxdeploy
         if: ${{ matrix.linux }}
         id: install-linuxdeploy
@@ -210,6 +218,7 @@ jobs:
             --appdir packaging/linux/appimage/AppDir \
             --output appimage && \
           mv *.AppImage dist/
+
       - name: Package (3DS)
         if: ${{ matrix.n3ds }}
         run: |
@@ -217,11 +226,13 @@ jobs:
           mkdir dist
           mv *.3dsx dist/
           mv *.cia dist/
+
       - name: Package (Android)
         if: ${{ matrix.android }}
         run: |
           mkdir -p build/dist
           mv  android-project/app/build/outputs/apk/*/*.apk build/dist/
+
       - name: Package Assets Separately
         if: matrix.build-assets
         run: (cd build/assets && zip -r ../dist/isle-assets.zip .)
@@ -239,6 +250,7 @@ jobs:
             build/dist/*.3dsx
             build/dist/*.cia
             build/dist/*.apk
+
   flatpak:
     name: "Flatpak (${{ matrix.arch }})"
     runs-on: ${{ matrix.os }}
@@ -303,6 +315,7 @@ jobs:
               LEGO1/omni/src/video/flic.cpp \
               $action_headers \
             --path LEGO1/omni LEGO1/lego/legoomni
+
   release:
     name: 'Release'
     if: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
