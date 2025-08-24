@@ -1,5 +1,9 @@
 #pragma once
 
-void checkVR();
+#include <openxr/openxr.h>
+
 bool isVRHeadsetConnected();
+
 void showVRNotDetectedMessage();
+
+void checkVR();
