@@ -907,6 +907,10 @@ if(ISLE_VR)
   install(FILES "${OPENXR_DLL}"
     DESTINATION "${CMAKE_INSTALL_BINDIR}"
   )
+
+  install(FILES "${OPENXR_LIB}"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  )
 endif()
 
 if (ISLE_BUILD_CONFIG)
