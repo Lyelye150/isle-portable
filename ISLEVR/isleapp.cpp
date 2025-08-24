@@ -930,7 +930,7 @@ MxResult IsleApp::SetupWindow()
 SDL_Surface* icon_surface = SDL_LoadBMP("res/isleVR.bmp");
 if (icon_surface) {
     SDL_SetWindowIcon(window, icon_surface);
-    SDL_FreeSurface(icon_surface);
+    SDL_DestroySurface(icon_surface);
 } else {
     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load window icon: %s", SDL_GetError());
 }
