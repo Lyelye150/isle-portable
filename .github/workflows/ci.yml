@@ -152,11 +152,11 @@ jobs:
               -Werror=dev"
 
       - name: Download OpenXR Loader
-      if: ${{ matrix.msvc }}
-      run: |
-        mkdir -p 3rdparty/openxr_loader_WIN
-        curl -L -o openxr_loader_windows.zip https://github.com/KhronosGroup/OpenXR-SDK-Source/releases/download/release-1.1.50/openxr_loader_windows-1.1.50.zip
-        unzip -o openxr_loader_windows.zip -d 3rdparty/openxr_loader_WIN
+        if: ${{ matrix.msvc }}
+        run: |
+          mkdir -p 3rdparty/openxr_loader_WIN
+          curl -L -o openxr_loader_windows.zip https://github.com/KhronosGroup/OpenXR-SDK-Source/releases/download/release-1.1.50/openxr_loader_windows-1.1.50.zip
+          unzip -o openxr_loader_windows.zip -d 3rdparty/openxr_loader_WIN
 
 
       - name: Configure (CMake)
