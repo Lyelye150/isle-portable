@@ -236,7 +236,8 @@ jobs:
       - name: Package OpenXR_loader.lib
         if: ${{ matrix.msvc }}
         run: |
-          cp 3rdparty/openxr_loader_WIN/x64/lib/openxr_loader.lib "build/dist/"
+          mkdir -p "build/dist/isle-0.1-Windows-x64/lib"
+          cp 3rdparty/openxr_loader_WIN/x64/lib/openxr_loader.lib "build/dist/isle-0.1-Windows-x64/lib"
 
       - name: Package Assets Separately
         if: matrix.build-assets
@@ -250,7 +251,6 @@ jobs:
             build/dist/isle-*
             build/dist/isleVR-*
             build/dist/openxr_loader.dll
-            build/dist/openxr_loader.lib
             build/dist/*.AppImage
             build/dist/*.3dsx
             build/dist/*.cia
