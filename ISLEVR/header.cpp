@@ -2,13 +2,17 @@
 #include <iostream>
 #ifdef _WIN32
 #include <SDL3/SDL.h>
+#include <openxr/openxr.h>
 #endif
 
 bool isVRHeadsetConnected() {
     XrInstance instance{XR_NULL_HANDLE};
     XrSystemId systemId{XR_NULL_SYSTEM_ID};
 
-    XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
+    XrInstanceCreateInfo createInfo{};
+    memset(&createInfo, 0, sizeof(createInfo));
+    createInfo.type = XR_TYPE_INSTANCE_CREATE_INFO;
+
     strcpy(createInfo.applicationInfo.applicationName, "LegoIsland");
     createInfo.applicationInfo.applicationVersion = 1;
     strcpy(createInfo.applicationInfo.engineName, "OmniEngine");
@@ -26,7 +30,7 @@ bool isVRHeadsetConnected() {
     result = xrGetSystem(instance, &systemInfo, &systemId);
     xrDestroyInstance(instance);
 
-    return XR_SUCCEEDED(result);
+    return XR_SUCCEEDED(result) && systemId != XR_NULL_SYSTEM_ID;
 }
 
 void showVRNotDetectedMessage() {
@@ -40,6 +44,8 @@ void showVRNotDetectedMessage() {
                              "VR Headset Not Detected",
                              "No compatible VR headset detected. Please connect a PCVR or Meta Quest headset.",
                              nullptr);
+    SDL_Delay(2000);
+    SDL_Quit();
 #else
     std::cerr << "No compatible VR headset detected. Please connect a PCVR or Meta Quest headset.\n";
 #endif
