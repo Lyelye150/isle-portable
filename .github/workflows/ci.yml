@@ -15,13 +15,13 @@ jobs:
       - name: Run clang-format
         run: |
           find CONFIG LEGO1 ISLE miniwin -iname '*.h' -o -iname '*.cpp' | xargs \
-            pipx run "clang-format>=17,<18" \
-              --style=file \
-              -i
+          pipx run "clang-format>=17,<18" \
+            --style=file \
+            -i
       - name: Check diff
-        run: git diff --exit-code
-
-    build:
+        run: |
+          git diff --exit-code
+  build:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container || '' }}
@@ -69,7 +69,7 @@ jobs:
         if: ${{ !!matrix.msvc && matrix.config }}
         uses: jurplel/install-qt-action@v4
         with:
-          cache: 'true'          
+          cache: 'true'
 
       - name: Install 3DS dependencies
         if: ${{ matrix.n3ds }}
@@ -79,7 +79,6 @@ jobs:
           wget https://github.com/3DSGuy/Project_CTR/releases/download/makerom-v0.18/makerom-v0.18-ubuntu_x86_64.zip
           unzip "makerom-v0.18-ubuntu_x86_64.zip" "makerom" -d "/opt/devkitpro/tools/bin"
           chmod a+x /opt/devkitpro/tools/bin/makerom
-
       - name: Install Linux dependencies (apt-get)
         if: ${{ matrix.linux }}
         run: |
@@ -88,14 +87,13 @@ jobs:
             libx11-dev libxext-dev libxrandr-dev libxrender-dev libxfixes-dev libxi-dev libxinerama-dev \
             libxcursor-dev libwayland-dev libxkbcommon-dev wayland-protocols libgl1-mesa-dev qt6-base-dev \
             libasound2-dev qt6-xdgdesktopportal-platformtheme
-
       - name: Install macOS dependencies (brew)
         if: ${{ matrix.brew }}
         run: |
           brew update
           brew install cmake ninja llvm qt6
           echo "LLVM_ROOT=$(brew --prefix llvm)/bin" >> $GITHUB_ENV
-      
+
       - name: Use latest Xcode
         if: ${{ matrix.ios }}
         uses: maxim-lobanov/setup-xcode@v1.6.0
@@ -116,7 +114,6 @@ jobs:
         if: ${{ matrix.build-assets }}
         run: |
           git lfs pull
-
       - name: Setup Java (Android)
         if: ${{ matrix.android }}
         uses: actions/setup-java@v4
@@ -149,15 +146,12 @@ jobs:
               -DISLE_WERROR=${{ !!matrix.werror }} \
               -DISLE_DEBUG=${{ matrix.debug || 'OFF' }} \
               -Werror=dev"
-
-      - name: Download OpenXR Loader (MSVC AND WINDOWS ONLY)
+      - name: Download OpenXR Loader
         if: ${{ matrix.msvc }}
         run: |
           mkdir -p 3rdparty/openxr_loader_WIN
           curl -L -o openxr_loader_windows.zip https://github.com/KhronosGroup/OpenXR-SDK-Source/releases/download/release-1.1.50/openxr_loader_windows-1.1.50.zip
           unzip -o openxr_loader_windows.zip -d 3rdparty/openxr_loader_WIN
-
-
       - name: Configure (CMake)
         if: ${{ !matrix.android }}
         run: |
@@ -172,7 +166,6 @@ jobs:
             -DISLE_DEBUG=${{ matrix.debug || 'OFF' }} \
             -DISLE_VR=ON \
             -Werror=dev
-
       - name: Build (CMake)
         if: ${{ !matrix.android }}
         run: cmake --build build --verbose --config Release
@@ -195,7 +188,6 @@ jobs:
             echo "Package creation failed after $max_tries attempts."
             exit 1
           fi
-
       - name: Install linuxdeploy
         if: ${{ matrix.linux }}
         id: install-linuxdeploy
@@ -218,7 +210,6 @@ jobs:
             --appdir packaging/linux/appimage/AppDir \
             --output appimage && \
           mv *.AppImage dist/
-
       - name: Package (3DS)
         if: ${{ matrix.n3ds }}
         run: |
@@ -226,13 +217,11 @@ jobs:
           mkdir dist
           mv *.3dsx dist/
           mv *.cia dist/
-
       - name: Package (Android)
         if: ${{ matrix.android }}
         run: |
           mkdir -p build/dist
           mv  android-project/app/build/outputs/apk/*/*.apk build/dist/
-
       - name: Package Assets Separately
         if: matrix.build-assets
         run: (cd build/assets && zip -r ../dist/isle-assets.zip .)
@@ -245,11 +234,11 @@ jobs:
             build/dist/isle-*
             build/dist/isleVR-*
             build/dist/openxr_loader.dll
+            build/dist/openxr_loader.lib
             build/dist/*.AppImage
             build/dist/*.3dsx
             build/dist/*.cia
             build/dist/*.apk
-
   flatpak:
     name: "Flatpak (${{ matrix.arch }})"
     runs-on: ${{ matrix.os }}
@@ -293,12 +282,10 @@ jobs:
       - name: Install python libraries
         run: |
           pip install -r tools/requirements.txt
-
       - name: Run ncc
         run: |
           action_headers=$(find LEGO1/lego/legoomni/include/actions \
             -name '*.h' -print0 | xargs -0 echo)
-
           python3 tools/ncc/ncc.py \
             --clang-lib ${{ env.LLVM_PATH }}/lib/libclang.so \
             --recurse \
@@ -316,7 +303,6 @@ jobs:
               LEGO1/omni/src/video/flic.cpp \
               $action_headers \
             --path LEGO1/omni LEGO1/lego/legoomni
-
   release:
     name: 'Release'
     if: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
