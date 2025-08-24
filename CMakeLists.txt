@@ -673,7 +673,7 @@ if(ISLE_VR)
     else()
         message(STATUS "OpenXR is only supported for 64-bit builds; skipping")
     endif()
-endif(
+endif()
 
   if(MINGW)
       foreach(tgt XrApiLayer_core_validation)
