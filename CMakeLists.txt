@@ -638,10 +638,10 @@ endif()
     target_link_libraries(isleVR PRIVATE SDL3::SDL3 Isle::iniparser)
 
     # Allow unconditional include of miniwin/miniwindevice.h
-    target_link_libraries(isleVR PRIVATE miniwin-headers)
+    target_link_libraries(isleVR PUBLIC miniwin-headers)
 
     # links isleVR to miniwin
-    target_compile_definitions(isleVR PRIVATE MINIWIN)
+    target_compile_definitions(isleVR PUBLIC MINIWIN)
 
     # Vector math
     target_link_libraries(isleVR PRIVATE Vec::Vec)
