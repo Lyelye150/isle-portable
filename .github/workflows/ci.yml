@@ -233,6 +233,11 @@ jobs:
           mkdir -p build/dist
           mv  android-project/app/build/outputs/apk/*/*.apk build/dist/
 
+      - name: Package OpenXR_loader.lib
+        if: ${{ matrix.msvc }}
+        run: |
+          cp 3rdparty/openxr_loader_WIN/x64/lib/openxr_loader.lib "build/dist/"
+
       - name: Package Assets Separately
         if: matrix.build-assets
         run: (cd build/assets && zip -r ../dist/isle-assets.zip .)
