@@ -125,7 +125,10 @@ target_include_directories(miniwin
     ${CMAKE_CURRENT_SOURCE_DIR}/src/internal
     ${CMAKE_CURRENT_SOURCE_DIR}/src/d3drm/backends/sdl3gpu/shaders/generated
 )
-target_sources(miniwin PRIVATE ../../ISLEVR/VRRen.cpp)
+target_sources(miniwin PRIVATE ../../ISLEVR/VRRen.cpp
+${CMAKE_SOURCE_DIR}/3rdparty/openxr_loader_WIN/include)
+
+target_link_libraries(miniwin PRIVATE "${OPENXR_LIB}")
 
 target_link_libraries(miniwin PUBLIC miniwin-headers)
 
