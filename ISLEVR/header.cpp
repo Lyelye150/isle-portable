@@ -3,6 +3,7 @@
 #ifdef _WIN32
 #include <SDL3/SDL.h>
 #endif
+
 #include <openxr/openxr.h>
 
 bool isVRHeadsetConnected() {

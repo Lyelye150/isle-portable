@@ -279,35 +279,22 @@ void IsleApp::SetupVideoFlags(
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 {
-    *appstate = NULL;
+	*appstate = NULL;
 
-    if (!isVRHeadsetConnected()) {
-        Any_ShowSimpleMessageBox(
-            SDL_MESSAGEBOX_ERROR,
-            "LEGO® Island VR Error",
-            "No VR headset detected.\nPlease connect a headset and restart IsleVR.",
-            NULL
-        );
-        return SDL_APP_FAILURE;
-    }
+	SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
+	SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 
-    SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
-    SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
-
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC)) {
-        char buffer[256];
-        SDL_snprintf(
-            buffer,
-            sizeof(buffer),
-            "\"LEGO® Island\" failed to start.\nPlease quit all other applications and try again.\nSDL error: %s",
-            SDL_GetError()
-        );
-        Any_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "LEGO® Island Error", buffer, NULL);
-        return SDL_APP_FAILURE;
-    }
-
-    return SDL_APP_CONTINUE;
-}
+	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC)) {
+		char buffer[256];
+		SDL_snprintf(
+			buffer,
+			sizeof(buffer),
+			"\"LEGO® Island\" failed to start.\nPlease quit all other applications and try again.\nSDL error: %s",
+			SDL_GetError()
+		);
+		Any_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "LEGO® Island Error", buffer, NULL);
+		return SDL_APP_FAILURE;
+	}
 
 	// [library:window]
 	// Original game checks for an existing instance here.
