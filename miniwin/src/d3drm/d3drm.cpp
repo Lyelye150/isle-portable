@@ -13,26 +13,25 @@
 #include "ddsurface_impl.h"
 #include "miniwin.h"
 
+#ifdef USE_VR
+#include <VRRen.h>
+#endif
+
 #include <SDL3/SDL.h>
 
 #ifdef USE_VR
 
-#include <VRRen.h>
-
 class Direct3DRMVRRenderer : public Direct3DRMRenderer {
 public:
-    explicit Direct3DRMVRRenderer(Direct3DRMRenderer* backend)
-        : backend_(backend) {}
+    Direct3DRMVRRenderer(Direct3DRMRenderer* backend) : backend_(backend) {}
 
     bool BeginScene() override { return backend_->BeginScene(); }
-
     void EndScene() override { backend_->EndScene(); }
 
     void RenderScene(Scene* scene) override {
         for (int eye = 0; eye < 2; ++eye) {
             VRViewMatrix view = VR_GetEyeViewMatrix(eye);
             VRProjMatrix proj = VR_GetEyeProjMatrix(eye);
-
             backend_->SetViewMatrix(view);
             backend_->SetProjMatrix(proj);
             backend_->RenderScene(scene);
@@ -40,18 +39,11 @@ public:
     }
 
     void Clear() override { backend_->Clear(); }
-
     void Present() override { backend_->Present(); }
-
     void Resize(int w, int h) override { backend_->Resize(w, h); }
 
-    void SetViewMatrix(const VRViewMatrix& m) override {
-        backend_->SetViewMatrix(m);
-    }
-
-    void SetProjMatrix(const VRProjMatrix& m) override {
-        backend_->SetProjMatrix(m);
-    }
+    void SetViewMatrix(const VRViewMatrix& m) override { backend_->SetViewMatrix(m); }
+    void SetProjMatrix(const VRProjMatrix& m) override { backend_->SetProjMatrix(m); }
 
 private:
     Direct3DRMRenderer* backend_;
