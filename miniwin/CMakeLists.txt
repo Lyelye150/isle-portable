@@ -125,10 +125,8 @@ target_include_directories(miniwin
     ${CMAKE_CURRENT_SOURCE_DIR}/src/internal
     ${CMAKE_CURRENT_SOURCE_DIR}/src/d3drm/backends/sdl3gpu/shaders/generated
 )
+target_sources(miniwin PRIVATE ../../ISLEVR/VRRen.cpp)
 
-target_include_directories(miniwin PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/ISLEVR
-)
 target_link_libraries(miniwin PUBLIC miniwin-headers)
 
 target_link_libraries(miniwin PRIVATE SDL3::SDL3)
