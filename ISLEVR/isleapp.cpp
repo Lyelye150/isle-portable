@@ -281,16 +281,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 {
     *appstate = NULL;
 
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        Any_ShowSimpleMessageBox(
-            SDL_MESSAGEBOX_ERROR,
-            "LEGO® Island VR Error",
-            "Failed to initialize SDL video for VR check.",
-            NULL
-        );
-        return SDL_APP_FAILURE;
-    }
-
     if (!isVRHeadsetConnected()) {
         Any_ShowSimpleMessageBox(
             SDL_MESSAGEBOX_ERROR,
@@ -304,15 +294,15 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC) != 0) {
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC)) {
         char buffer[256];
         SDL_snprintf(
             buffer,
             sizeof(buffer),
-            "\"LEGO® Island VR\" failed to start.\nPlease quit all other applications and try again.\nSDL error: %s",
+            "\"LEGO® Island\" failed to start.\nPlease quit all other applications and try again.\nSDL error: %s",
             SDL_GetError()
         );
-        Any_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "LEGO® Island VR Error", buffer, NULL);
+        Any_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "LEGO® Island Error", buffer, NULL);
         return SDL_APP_FAILURE;
     }
 
