@@ -281,6 +281,16 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 {
 	*appstate = NULL;
 
+	if (!isVRHeadsetConnected()) {
+    Any_ShowSimpleMessageBox(
+        SDL_MESSAGEBOX_ERROR,
+        "LEGO® Island VR Error",
+        "No VR headset detected.\nPlease connect a headset and restart IsleVR.",
+        NULL
+    );
+    return SDL_APP_FAILURE;
+    }
+
 	SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
 	SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 
