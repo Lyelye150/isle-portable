@@ -1,50 +1,56 @@
 #include "header.h"
-#include <iostream>
 #include <cstring>
 #ifdef _WIN32
 #include <SDL3/SDL.h>
 #endif
-
 #include <openxr/openxr.h>
 
 bool isVRHeadsetConnected() {
     uint32_t extCount = 0;
     XrResult result = xrEnumerateInstanceExtensionProperties(nullptr, 0, &extCount, nullptr);
-    if (XR_FAILED(result)) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[OpenXR] Failed to enumerate extensions: %d", result);
-        return false;
-    }
 
-    if (extCount == 0) {
+    if (XR_FAILED(result) || extCount == 0) {
         SDL_Log("[OpenXR] No OpenXR runtime/extensions found.");
         return false;
     }
 
-    SDL_Log("[OpenXR] %u OpenXR extensions found. Runtime likely available.", extCount);
-    return true;
-}
+    XrInstance instance = XR_NULL_HANDLE;
+    XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
+    memset(&createInfo, 0, sizeof(createInfo));
+    strcpy(createInfo.applicationInfo.applicationName, "LEGO Island (VR MODE)");
+    createInfo.applicationInfo.applicationVersion = 1;
+    strcpy(createInfo.applicationInfo.engineName, "OmniEngine");
+    createInfo.applicationInfo.engineVersion = 1;
+    createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
-void showVRNotDetectedMessage() {
-#ifdef _WIN32
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL3: %s", SDL_GetError());
-        return;
+    result = xrCreateInstance(&createInfo, &instance);
+    if (XR_FAILED(result)) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                     "[OpenXR] Failed to create instance: %d", result);
+        return false;
     }
 
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,
-                             "VR Headset Not Detected",
-                             "No compatible VR headset detected. Please connect a PCVR or Meta Quest headset.",
-                             nullptr);
-#else
-    SDL_Log("[OpenXR] No compatible VR headset detected. Please connect a PCVR or Meta Quest headset.");
-#endif
+    XrSystemGetInfo sysInfo{XR_TYPE_SYSTEM_GET_INFO};
+    sysInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
+
+    XrSystemId sysId;
+    result = xrGetSystem(instance, &sysInfo, &sysId);
+
+    xrDestroyInstance(instance);
+
+    if (XR_FAILED(result)) {
+        SDL_Log("[OpenXR] Runtime present, but no HMD detected.");
+        return false;
+    }
+
+    SDL_Log("[OpenXR] VR headset detected with systemId=%llu.", (unsigned long long)sysId);
+    return true;
 }
 
 void checkVR() {
     if (!isVRHeadsetConnected()) {
-        showVRNotDetectedMessage();
-        exit(EXIT_FAILURE);
+        SDL_Log("[OpenXR] No VR headset detected.");
     } else {
-        SDL_Log("[OpenXR] OpenXR runtime detected.");
+        SDL_Log("[OpenXR] VR headset detected and ready.");
     }
 }
