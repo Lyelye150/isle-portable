@@ -15,6 +15,48 @@
 
 #include <SDL3/SDL.h>
 
+#ifdef USE_VR
+#include "VRRen.h"
+#include "d3drmrenderer.h"
+
+class Direct3DRMVRRenderer : public Direct3DRMRenderer {
+ public:
+    Direct3DRMVRRenderer(Direct3DRMRenderer* backend)
+        : backend_(backend) {}
+
+    bool BeginScene() override {
+        return backend_->BeginScene();
+    }
+
+    void EndScene() override {
+        backend_->EndScene();
+    }
+
+    void RenderScene(Scene* scene) override {
+        for (int eye = 0; eye < 2; ++eye) {
+            VRViewMatrix view = VR_GetEyeViewMatrix(eye);
+            VRProjMatrix proj = VR_GetEyeProjMatrix(eye);
+
+            backend_->SetViewMatrix(view);
+            backend_->SetProjMatrix(proj);
+
+            backend_->RenderScene(scene);
+        }
+    }
+
+    void Clear() override { backend_->Clear(); }
+    void Present() override { backend_->Present(); }
+    void Resize(int w, int h) override { backend_->Resize(w, h); }
+
+    void SetViewMatrix(const VRViewMatrix& m) override { backend_->SetViewMatrix(m); }
+    void SetProjMatrix(const VRProjMatrix& m) override { backend_->SetProjMatrix(m); }
+
+private:
+    Direct3DRMRenderer* backend_;
+};
+#endif
+
+
 Direct3DRMPickedArrayImpl::Direct3DRMPickedArrayImpl(const PickRecord* inputPicks, size_t count)
 {
 	picks.reserve(count);
@@ -141,6 +183,11 @@ HRESULT Direct3DRMImpl::CreateDeviceFromSurface(
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Device GUID not recognized");
 		return E_NOINTERFACE;
 	}
+
+	#ifdef USE_VR
+	DDRenderer = new Direct3DRMVRRenderer(DDRenderer);
+    #endif
+
 	*outDevice =
 		static_cast<IDirect3DRMDevice2*>(new Direct3DRMDevice2Impl(DDSDesc.dwWidth, DDSDesc.dwHeight, DDRenderer));
 	return DD_OK;

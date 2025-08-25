@@ -116,6 +116,10 @@ endif()
 
 target_compile_definitions(miniwin PUBLIC MINIWIN)
 
+if(ISLE_VR)
+target_compile_definitions(miniwin PUBLIC USE_VR)
+endif()
+
 target_include_directories(miniwin
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/internal

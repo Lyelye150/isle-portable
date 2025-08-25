@@ -602,7 +602,8 @@ endif()
 
     add_executable(isleVR WIN32
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/isle.rc
-    ${CMAKE_SOURCE_DIR}/ISLEVR/header.cpp
+    ${CMAKE_SOURCE_DIR}/ISLEVR/headdec.cpp
+    ${CMAKE_SOURCE_DIR}/ISLEVR/VRRen.cpp
     ${CMAKE_SOURCE_DIR}/ISLEVR/isleapp.cpp
     ${CMAKE_SOURCE_DIR}/ISLEVR/islefiles.cpp
     ${CMAKE_SOURCE_DIR}/ISLEVR/res/arrow_bmp.h
@@ -642,8 +643,6 @@ endif()
 
     # Define MINIWIN macro for conditional compilation
     target_compile_definitions(isleVR PRIVATE MINIWIN)
-
-    target_compile_definitions(isleVR PRIVATE VRDEC)
 
     # Vector math
     target_link_libraries(isleVR PRIVATE Vec::Vec)

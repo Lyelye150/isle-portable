@@ -1,6 +1,6 @@
 #define INITGUID
 
-#include "header.h"
+#include "headdec.h"
 
 #include "isleapp.h"
 
