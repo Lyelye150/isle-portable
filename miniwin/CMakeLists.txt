@@ -126,7 +126,10 @@ target_include_directories(miniwin
     ${CMAKE_CURRENT_SOURCE_DIR}/src/d3drm/backends/sdl3gpu/shaders/generated
 )
 target_sources(miniwin PUBLIC
-    ../../ISLEVR/VRRen.cpp
+    ${CMAKE_SOURCE_DIR}/ISLEVR/VRRen.cpp
+)
+target_include_directories(miniwin PUBLIC
+    ${CMAKE_SOURCE_DIR}/ISLEVR
 )
 
 target_include_directories(miniwin PUBLIC

@@ -16,7 +16,7 @@
 #include <SDL3/SDL.h>
 
 #ifdef USE_VR
-#include "../../ISLEVR/VRRen.h"
+#include <ISLEVR/VRRen.h>
 #include "d3drmrenderer.h"
 
 class Direct3DRMVRRenderer : public Direct3DRMRenderer {
