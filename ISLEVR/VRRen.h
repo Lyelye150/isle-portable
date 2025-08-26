@@ -14,7 +14,6 @@ struct VRContext {
     bool initialized = false;
 
     SDL_Window* window = nullptr;
-    SDL_GLContext glContext = nullptr;
 
     XrSwapchain swapchain = XR_NULL_HANDLE;
     int32_t width = 0;

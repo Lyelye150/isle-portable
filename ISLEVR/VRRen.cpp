@@ -32,32 +32,19 @@ bool VR_Init(VRContext& vrContext, SDL_Window* window) {
         return false;
     }
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    vrContext.glContext = SDL_GL_CreateContext(window);
-    if (!vrContext.glContext) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[VRRen] Failed to create GL context: %s", SDL_GetError());
-        return false;
-    }
-
     vrContext.initialized = true;
     vrContext.width = 1024;
     vrContext.height = 1024;
 
     if (!VR_CreateSwapchain(vrContext)) return false;
 
-    SDL_Log("[VRRen] VR initialized: HMD detected with dummy swapchains (no GL).");
+    SDL_Log("[VRRen] VR initialized (dummy, no GL).");
     return true;
 }
 
 void VR_Shutdown(VRContext& vrContext) {
     if (vrContext.initialized) {
         vrContext.eyes.clear();
-
-        if (vrContext.glContext) {
-            SDL_GL_DeleteContext(vrContext.glContext);
-            vrContext.glContext = nullptr;
-        }
 
         if (vrContext.session != XR_NULL_HANDLE) {
             vrContext.session = XR_NULL_HANDLE;
@@ -84,18 +71,21 @@ bool VR_BeginFrame(VRContext& vrContext) {
 
 void VR_EndFrame(VRContext& vrContext) {
     if (!vrContext.initialized) return;
-    SDL_GL_SwapWindow(vrContext.window);
+
+    if (vrContext.window) {
+        SDL_RenderPresent(SDL_GetRenderer(vrContext.window));
+    }
     SDL_Log("[VRRen] End frame.");
 }
 
 VRViewMatrix VR_GetEyeViewMatrix(int eye) {
     VRViewMatrix mat{};
-    for (int i = 0; i < 16; i++) mat.m[i] = (i % 5 == 0) ? 1.0f : 0.0f; // Identity
+    for (int i = 0; i < 16; i++) mat.m[i] = (i % 5 == 0) ? 1.0f : 0.0f;
     return mat;
 }
 
 VRProjMatrix VR_GetEyeProjMatrix(int eye) {
     VRProjMatrix mat{};
-    for (int i = 0; i < 16; i++) mat.m[i] = (i % 5 == 0) ? 1.0f : 0.0f; // Identity
+    for (int i = 0; i < 16; i++) mat.m[i] = (i % 5 == 0) ? 1.0f : 0.0f;
     return mat;
 }
