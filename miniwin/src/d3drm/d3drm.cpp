@@ -14,7 +14,7 @@
 #include "miniwin.h"
 
 #ifdef USE_VR
-#include <VRRen.h>
+#include "VRRen.h"
 #endif
 
 #include <SDL3/SDL.h>
@@ -24,28 +24,25 @@
 class Direct3DRMVRRenderer : public Direct3DRMRenderer
 {
 public:
-    explicit Direct3DRMVRRenderer(Direct3DRMRenderer* backend)
-        : backend_(backend)
-    {
-    }
+    explicit Direct3DRMVRRenderer(Direct3DRMRenderer* backend) : backend_(backend) {}
 
-    void RenderScene(Scene* scene) override
-    {
-        for (int eye = 0; eye < 2; ++eye)
-        {
-            VRViewMatrix view = VR_GetEyeViewMatrix(eye);
-            VRProjMatrix proj = VR_GetEyeProjMatrix(eye);
-            backend_->SetViewMatrix(view);
-            backend_->SetProjMatrix(proj);
-            backend_->RenderScene(scene);
-        }
+    void PushLights(const SceneLight* vertices, size_t count) override { backend_->PushLights(vertices, count); }
+    void SetProjection(const D3DRMMATRIX4D& projection, D3DVALUE front, D3DVALUE back) override { backend_->SetProjection(projection, front, back); }
+    void SetFrustumPlanes(const Plane* frustumPlanes) override { backend_->SetFrustumPlanes(frustumPlanes); }
+    Uint32 GetTextureId(IDirect3DRMTexture* texture, bool isUI = false, float scaleX = 0, float scaleY = 0) override { return backend_->GetTextureId(texture, isUI, scaleX, scaleY); }
+    Uint32 GetMeshId(IDirect3DRMMesh* mesh, const MeshGroup* meshGroup) override { return backend_->GetMeshId(mesh, meshGroup); }
+    HRESULT BeginFrame() override { return backend_->BeginFrame(); }
+    void EnableTransparency() override { backend_->EnableTransparency(); }
+    void SubmitDraw(DWORD meshId, const D3DRMMATRIX4D& modelViewMatrix, const D3DRMMATRIX4D& worldMatrix, const D3DRMMATRIX4D& viewMatrix, const Matrix3x3& normalMatrix, const Appearance& appearance) override {
+        backend_->SubmitDraw(meshId, modelViewMatrix, worldMatrix, viewMatrix, normalMatrix, appearance);
     }
-
-    bool BeginScene() override { return backend_->BeginScene(); }
-    void EndScene() override { backend_->EndScene(); }
-    void Present() override { backend_->Present(); }
-    void Clear(float r = 0.f, float g = 0.f, float b = 0.f) override { backend_->Clear(r, g, b); }
-    void Resize(int w, int h, const ViewportTransform& vt) override { backend_->Resize(w, h, vt); }
+    HRESULT FinalizeFrame() override { return backend_->FinalizeFrame(); }
+    void Resize(int width, int height, const ViewportTransform& viewportTransform) override { backend_->Resize(width, height, viewportTransform); }
+    void Clear(float r, float g, float b) override { backend_->Clear(r, g, b); }
+    void Flip() override { backend_->Flip(); }
+    void Draw2DImage(Uint32 textureId, const SDL_Rect& srcRect, const SDL_Rect& dstRect, FColor color) override { backend_->Draw2DImage(textureId, srcRect, dstRect, color); }
+    void Download(SDL_Surface* target) override { backend_->Download(target); }
+    void SetDither(bool dither) override { backend_->SetDither(dither); }
 
 private:
     Direct3DRMRenderer* backend_;
@@ -277,3 +274,23 @@ D3DCOLOR D3DRMCreateColorRGBA(D3DVALUE red, D3DVALUE green, D3DVALUE blue, D3DVA
 
     return (a << 24) | (r << 16) | (g << 8) | b;
 }
+
+#ifdef USE_VR
+
+VRViewMatrix VR_GetEyeViewMatrix(int eye)
+{
+    VRViewMatrix v;
+    for (int i = 0; i < 16; ++i) v.m[i] = 0.0f;
+    v.m[0] = 1.0f; v.m[5] = 1.0f; v.m[10] = 1.0f; v.m[15] = 1.0f;
+    return v;
+}
+
+VRProjMatrix VR_GetEyeProjMatrix(int eye)
+{
+    VRProjMatrix p;
+    for (int i = 0; i < 16; ++i) p.m[i] = 0.0f;
+    p.m[0] = 1.0f; p.m[5] = 1.0f; p.m[10] = 1.0f; p.m[15] = 1.0f;
+    return p;
+}
+
+#endif

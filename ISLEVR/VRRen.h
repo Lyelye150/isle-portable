@@ -1,11 +1,12 @@
 #pragma once
-#include "openxr/openxr.h"
+#include <openxr/openxr.h>
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_opengl.h>
 #include <vector>
 
 struct VREyeFramebuffer {
-    GLuint fbo = 0;
-    GLuint texture = 0;
+    GLuint fbo;
+    GLuint texture;
 };
 
 struct VRContext {
@@ -33,3 +34,9 @@ void VR_EndFrame(VRContext& vrContext);
 bool VR_CreateSwapchain(VRContext& vrContext);
 
 bool VR_BindEye(VRContext& vrContext, int eyeIndex);
+
+struct VRViewMatrix { float m[16]; };
+struct VRProjMatrix { float m[16]; };
+
+VRViewMatrix VR_GetEyeViewMatrix(int eye);
+VRProjMatrix VR_GetEyeProjMatrix(int eye);
