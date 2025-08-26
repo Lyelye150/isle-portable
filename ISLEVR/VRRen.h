@@ -3,8 +3,6 @@
 #include <SDL3/SDL.h>
 #include <vector>
 
-typedef unsigned int GLuint;
-
 struct VREyeFramebuffer {
     GLuint fbo;
     GLuint texture;

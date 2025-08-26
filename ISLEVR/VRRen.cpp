@@ -1,6 +1,5 @@
 #include "VRRen.h"
 #include <SDL3/SDL.h>
-#include <GL/gl.h>
 #include <iostream>
 
 bool VR_CreateSwapchain(VRContext& vrContext) {
