@@ -512,9 +512,7 @@ if (ISLE_EXTENSIONS)
   )
 endif()
 
-if (ISLE_VR)
 target_link_libraries(lego1 PRIVATE "${OPENXR_LIB}")
-endif()
 
 if (ISLE_BUILD_APP)
 
