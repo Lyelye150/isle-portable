@@ -4,8 +4,7 @@
 #include <vector>
 
 struct VREyeFramebuffer {
-    GLuint fbo;
-    GLuint texture;
+    int eyeIndex = -1;
 };
 
 struct VRContext {
@@ -31,7 +30,6 @@ bool VR_BeginFrame(VRContext& vrContext);
 void VR_EndFrame(VRContext& vrContext);
 
 bool VR_CreateSwapchain(VRContext& vrContext);
-
 bool VR_BindEye(VRContext& vrContext, int eyeIndex);
 
 struct VRViewMatrix { float m[16]; };

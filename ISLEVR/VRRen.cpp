@@ -7,25 +7,11 @@ bool VR_CreateSwapchain(VRContext& vrContext) {
 
     vrContext.eyes.resize(2);
     for (int i = 0; i < 2; ++i) {
-        glGenFramebuffers(1, &vrContext.eyes[i].fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, vrContext.eyes[i].fbo);
-
-        glGenTextures(1, &vrContext.eyes[i].texture);
-        glBindTexture(GL_TEXTURE_2D, vrContext.eyes[i].texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, vrContext.width, vrContext.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, vrContext.eyes[i].texture, 0);
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[VRRen] Failed to create FBO for eye %d", i);
-            return false;
-        }
+        vrContext.eyes[i].eyeIndex = i;
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    SDL_Log("[VRRen] OpenGL1 per-eye FBOs created, %dx%d", vrContext.width, vrContext.height);
+    SDL_Log("[VRRen] Dummy per-eye swapchains created (no GL). Size: %dx%d",
+            vrContext.width, vrContext.height);
     return true;
 }
 
@@ -50,7 +36,7 @@ bool VR_Init(VRContext& vrContext, SDL_Window* window) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     vrContext.glContext = SDL_GL_CreateContext(window);
     if (!vrContext.glContext) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[VRRen] Failed to create OpenGL1 context: %s", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[VRRen] Failed to create GL context: %s", SDL_GetError());
         return false;
     }
 
@@ -60,16 +46,12 @@ bool VR_Init(VRContext& vrContext, SDL_Window* window) {
 
     if (!VR_CreateSwapchain(vrContext)) return false;
 
-    SDL_Log("[VRRen] VR initialized: HMD detected with OpenGL1 context ready.");
+    SDL_Log("[VRRen] VR initialized: HMD detected with dummy swapchains (no GL).");
     return true;
 }
 
 void VR_Shutdown(VRContext& vrContext) {
     if (vrContext.initialized) {
-        for (auto& eye : vrContext.eyes) {
-            if (eye.texture) glDeleteTextures(1, &eye.texture);
-            if (eye.fbo) glDeleteFramebuffers(1, &eye.fbo);
-        }
         vrContext.eyes.clear();
 
         if (vrContext.glContext) {
@@ -82,14 +64,13 @@ void VR_Shutdown(VRContext& vrContext) {
         }
 
         vrContext.initialized = false;
-        SDL_Log("[VRRen] VR session and OpenGL context shut down.");
+        SDL_Log("[VRRen] VR session shut down.");
     }
 }
 
 bool VR_BindEye(VRContext& vrContext, int eyeIndex) {
     if (!vrContext.initialized || eyeIndex >= (int)vrContext.eyes.size()) return false;
-    glBindFramebuffer(GL_FRAMEBUFFER, vrContext.eyes[eyeIndex].fbo);
-    glViewport(0, 0, vrContext.width, vrContext.height);
+    SDL_Log("[VRRen] Binding eye %d (dummy, no GL)", eyeIndex);
     return true;
 }
 
@@ -97,15 +78,24 @@ bool VR_BeginFrame(VRContext& vrContext) {
     if (!vrContext.initialized) return false;
 
     VR_BindEye(vrContext, 0);
-    glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    SDL_Log("[VRRen] Begin frame.");
     return true;
 }
 
 void VR_EndFrame(VRContext& vrContext) {
     if (!vrContext.initialized) return;
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     SDL_GL_SwapWindow(vrContext.window);
+    SDL_Log("[VRRen] End frame.");
+}
+
+VRViewMatrix VR_GetEyeViewMatrix(int eye) {
+    VRViewMatrix mat{};
+    for (int i = 0; i < 16; i++) mat.m[i] = (i % 5 == 0) ? 1.0f : 0.0f; // Identity
+    return mat;
+}
+
+VRProjMatrix VR_GetEyeProjMatrix(int eye) {
+    VRProjMatrix mat{};
+    for (int i = 0; i < 16; i++) mat.m[i] = (i % 5 == 0) ? 1.0f : 0.0f; // Identity
+    return mat;
 }
