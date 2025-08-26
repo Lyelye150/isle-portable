@@ -274,23 +274,3 @@ D3DCOLOR D3DRMCreateColorRGBA(D3DVALUE red, D3DVALUE green, D3DVALUE blue, D3DVA
 
     return (a << 24) | (r << 16) | (g << 8) | b;
 }
-
-#ifdef USE_VR
-
-VRViewMatrix VR_GetEyeViewMatrix(int eye)
-{
-    VRViewMatrix v;
-    for (int i = 0; i < 16; ++i) v.m[i] = 0.0f;
-    v.m[0] = 1.0f; v.m[5] = 1.0f; v.m[10] = 1.0f; v.m[15] = 1.0f;
-    return v;
-}
-
-VRProjMatrix VR_GetEyeProjMatrix(int eye)
-{
-    VRProjMatrix p;
-    for (int i = 0; i < 16; ++i) p.m[i] = 0.0f;
-    p.m[0] = 1.0f; p.m[5] = 1.0f; p.m[10] = 1.0f; p.m[15] = 1.0f;
-    return p;
-}
-
-#endif

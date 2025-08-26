@@ -28,7 +28,7 @@ bool VR_Init(VRContext& vrContext, SDL_Window* window) {
 
     XrResult result = xrGetSystem(*vrContext.instance, &sysInfo, &vrContext.systemId);
     if (XR_FAILED(result)) {
-        SDL_Log("[VRRen] Runtime present but no HMD detected.");
+        SDL_Log("[VRRen] Runtime present but no VR detected.");
         return false;
     }
 
