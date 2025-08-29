@@ -1,12 +1,11 @@
 #define XR_USE_PLATFORM_WIN32
 #define XR_USE_GRAPHICS_API_OPENGL
 
-#include "miniwin/windows.h"
+#include "VRRen.h"
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_video.h>
-#include "VRRen.h"
 #include <cstring>
 #include <iostream>
 

@@ -1,8 +1,34 @@
 #pragma once
 #include <SDL3/SDL.h>
+#include <vector>
+
+// --- Added this to fix a error during the building process ---
+typedef unsigned long DWORD;
+typedef long LONG;
+typedef void* HANDLE;
+
+typedef struct HDC__* HDC;
+typedef struct HGLRC__* HGLRC;
+
+typedef union _LARGE_INTEGER {
+    struct {
+        DWORD LowPart;
+        LONG HighPart;
+    };
+    long long QuadPart;
+} LARGE_INTEGER;
+
+typedef HANDLE XRHANDLE;
+typedef void* XrInstance;
+typedef void* XrSystemId;
+typedef void* XrSession;
+typedef void* XrSpace;
+typedef void* XrSwapchain;
+
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
-#include <vector>
+
+// ------------------------------------------------ - big line Lyelye 2025 (you can remove this or not)
 
 struct VRViewMatrix {
     float m[16];
@@ -39,6 +65,7 @@ struct VRContext {
     VRRenderer renderer = VRRenderer::OpenGL1;
 };
 
+// --- Functions ---
 bool VR_Init(VRContext& vrContext, SDL_Window* window, VRRenderer renderer = VRRenderer::OpenGL1);
 void VR_Shutdown(VRContext& vrContext);
 bool VR_CreateSwapchain(VRContext& vrContext);
