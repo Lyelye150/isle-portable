@@ -787,6 +787,14 @@ if (ISLE_BUILD_CONFIG)
   endif()
   target_compile_definitions(isle-config PRIVATE DIRECT3D_VERSION=0x500)
   target_link_libraries(isle-config PRIVATE SDL3::SDL3 Isle::iniparser)
+
+    if(ISLE_VR)
+   # links isle-config to openxr mainly to fix a error in the building process
+   # why do i have to link this EVERYWHERE :/   (...oh right...)
+   target_include_directories(isle-config PRIVATE "${OPENXR_INC}")
+   target_link_libraries(isle-config PRIVATE "${OPENXR_LIB}")
+  endif()
+
   if (NOT ISLE_MINIWIN)
     target_link_libraries(isle-config PRIVATE ddraw dxguid)
   endif()
