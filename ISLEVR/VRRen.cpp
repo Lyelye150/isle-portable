@@ -55,12 +55,14 @@ bool VR_Init(VRContext& vrContext, SDL_Window* window) {
     }
 
 #ifdef _WIN32
-    XrGraphicsBindingOpenGLWin32KHR graphicsBinding{XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR};
-    HWND hwnd = nullptr;
-    SDL_GetWindowPointerProperty(window, SDL_WINDOW_POINTER_HWND, (void**)&hwnd);
-    graphicsBinding.hDC   = GetDC(hwnd);
-    graphicsBinding.hGLRC = wglGetCurrentContext();
+	XrGraphicsBindingOpenGLWin32KHR graphicsBinding{XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR};
+	SDL_SysWMinfo wmInfo;
+	SDL_VERSION(&wmInfo.version);
+	SDL_GetWindowWMInfo(window, &wmInfo);
+	graphicsBinding.hDC   = GetDC(wmInfo.info.win.window);
+	graphicsBinding.hGLRC = wglGetCurrentContext();
 #endif
+
 
     XrSessionCreateInfo sessionInfo{XR_TYPE_SESSION_CREATE_INFO};
     sessionInfo.next = &graphicsBinding;
