@@ -1,6 +1,7 @@
 #define XR_USE_PLATFORM_WIN32
 #define XR_USE_GRAPHICS_API_OPENGL
 #define WIN32_LEAN_AND_MEAN
+
 #include <windows.h>
 #include <Unknwn.h>
 #include <openxr/openxr.h>
@@ -8,6 +9,14 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_video.h>
 #include "VRRen.h"
+#include <cstring>
+#include <iostream>
+
+#ifdef _WIN32
+HWND GetSDLWindowHWND(SDL_Window* window) {
+    return SDL_GetWindowNativeHandle(window);
+}
+#endif
 
 bool VR_CreateSwapchain(VRContext& vrContext) {
     if (!vrContext.initialized) return false;
@@ -16,7 +25,16 @@ bool VR_CreateSwapchain(VRContext& vrContext) {
     for (int i = 0; i < 2; ++i) {
         XrSwapchainCreateInfo swapInfo{XR_TYPE_SWAPCHAIN_CREATE_INFO};
         swapInfo.arraySize = 1;
-        swapInfo.format = 0;
+
+        switch (vrContext.renderer) {
+            case VRRenderer::OpenGL1: swapInfo.format = 0; break;
+            case VRRenderer::OpenGLES2: swapInfo.format = 0; break;
+            case VRRenderer::OpenGLES3: swapInfo.format = 0; break;
+			case VRRenderer::Directx9: swapInfo.format = 0; break;
+            case VRRenderer::SDL3GPU: swapInfo.format = 0; break;
+            case VRRenderer::Software: swapInfo.format = 0; break;
+        }
+
         swapInfo.width = 1024;
         swapInfo.height = 1024;
         swapInfo.mipCount = 1;
@@ -26,51 +44,60 @@ bool VR_CreateSwapchain(VRContext& vrContext) {
 
         XrResult result = xrCreateSwapchain(vrContext.session, &swapInfo, &vrContext.eyes[i].swapchain);
         if (XR_FAILED(result)) {
+            std::cerr << "[VRRen] Failed to create swapchain for eye " << i << std::endl;
             return false;
         }
         vrContext.eyes[i].width = swapInfo.width;
         vrContext.eyes[i].height = swapInfo.height;
     }
+
     return true;
 }
 
-bool VR_Init(VRContext& vrContext, SDL_Window* window) {
+bool VR_Init(VRContext& vrContext, SDL_Window* window, VRRenderer renderer) {
     vrContext.window = window;
+    vrContext.renderer = renderer;
 
     XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
-    strcpy(createInfo.applicationInfo.applicationName, "LEGO Island VR");
+    std::strcpy(createInfo.applicationInfo.applicationName, "LEGO Island VR");
     createInfo.applicationInfo.applicationVersion = 1;
-    strcpy(createInfo.applicationInfo.engineName, "OmniEngine");
+    std::strcpy(createInfo.applicationInfo.engineName, "OmniEngine");
     createInfo.applicationInfo.engineVersion = 1;
     createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
-    if (XR_FAILED(xrCreateInstance(&createInfo, &vrContext.instance))) {
-        return false;
-    }
+    if (XR_FAILED(xrCreateInstance(&createInfo, &vrContext.instance))) return false;
 
     XrSystemGetInfo sysInfo{XR_TYPE_SYSTEM_GET_INFO};
     sysInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
-    if (XR_FAILED(xrGetSystem(vrContext.instance, &sysInfo, &vrContext.systemId))) {
-        return false;
-    }
+    if (XR_FAILED(xrGetSystem(vrContext.instance, &sysInfo, &vrContext.systemId))) return false;
 
 #ifdef _WIN32
-	XrGraphicsBindingOpenGLWin32KHR graphicsBinding{XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR};
-	SDL_SysWMinfo wmInfo;
-	SDL_VERSION(&wmInfo.version);
-	SDL_GetWindowWMInfo(window, &wmInfo);
-	graphicsBinding.hDC   = GetDC(wmInfo.info.win.window);
-	graphicsBinding.hGLRC = wglGetCurrentContext();
-#endif
+    switch (renderer) {
+        case VRRenderer::OpenGL1:
+        case VRRenderer::OpenGLES2:
+        case VRRenderer::OpenGLES3: {
+            XrGraphicsBindingOpenGLWin32KHR graphicsBinding{XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR};
+            HWND hwnd = GetSDLWindowHWND(window);
+            graphicsBinding.hDC   = GetDC(hwnd);
 
+            if (renderer == VRRenderer::OpenGL1) graphicsBinding.hGLRC = wglGetCurrentContext();
+            else graphicsBinding.hGLRC = nullptr; // placeholder for GLES/other
 
-    XrSessionCreateInfo sessionInfo{XR_TYPE_SESSION_CREATE_INFO};
-    sessionInfo.next = &graphicsBinding;
-    sessionInfo.systemId = vrContext.systemId;
+            XrSessionCreateInfo sessionInfo{XR_TYPE_SESSION_CREATE_INFO};
+            sessionInfo.next     = static_cast<void*>(&graphicsBinding);
+            sessionInfo.systemId = vrContext.systemId;
+            if (XR_FAILED(xrCreateSession(vrContext.instance, &sessionInfo, &vrContext.session))) return false;
+        } break;
 
-    if (XR_FAILED(xrCreateSession(vrContext.instance, &sessionInfo, &vrContext.session))) {
-        return false;
+        case VRRenderer::SDL3GPU:
+        case VRRenderer::Software: {
+            XrSessionCreateInfo sessionInfo{XR_TYPE_SESSION_CREATE_INFO};
+            sessionInfo.next     = nullptr; // software / SDL3GPU placeholder
+            sessionInfo.systemId = vrContext.systemId;
+            if (XR_FAILED(xrCreateSession(vrContext.instance, &sessionInfo, &vrContext.session))) return false;
+        } break;
     }
+#endif
 
     vrContext.initialized = true;
     return VR_CreateSwapchain(vrContext);
@@ -100,17 +127,14 @@ void VR_Shutdown(VRContext& vrContext) {
 }
 
 bool VR_BindEye(VRContext& vrContext, int eyeIndex) {
-    return vrContext.initialized && eyeIndex < (int)vrContext.eyes.size();
+    return vrContext.initialized && eyeIndex < static_cast<int>(vrContext.eyes.size());
 }
 
 bool VR_BeginFrame(VRContext& vrContext) {
-    if (!vrContext.initialized) return false;
-    return true;
+    return vrContext.initialized;
 }
 
-void VR_EndFrame(VRContext& vrContext) {
-    if (!vrContext.initialized) return;
-}
+void VR_EndFrame(VRContext& vrContext) {}
 
 VRViewMatrix VR_GetEyeViewMatrix(int eye) {
     VRViewMatrix mat{};

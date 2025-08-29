@@ -18,6 +18,15 @@ struct VREye {
     int height = 0;
 };
 
+enum class VRRenderer {
+    OpenGL1,
+    OpenGLES2,
+    OpenGLES3,
+	Directx9,
+    SDL3GPU,
+    Software
+};
+
 struct VRContext {
     XrInstance instance = XR_NULL_HANDLE;
     XrSession session = XR_NULL_HANDLE;
@@ -27,9 +36,10 @@ struct VRContext {
     SDL_Window* window = nullptr;
     std::vector<VREye> eyes;
     bool initialized = false;
+    VRRenderer renderer = VRRenderer::OpenGL1;
 };
 
-bool VR_Init(VRContext& vrContext, SDL_Window* window);
+bool VR_Init(VRContext& vrContext, SDL_Window* window, VRRenderer renderer = VRRenderer::OpenGL1);
 void VR_Shutdown(VRContext& vrContext);
 bool VR_CreateSwapchain(VRContext& vrContext);
 
