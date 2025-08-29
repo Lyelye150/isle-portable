@@ -1,9 +1,12 @@
 #define XR_USE_PLATFORM_WIN32
 #define XR_USE_GRAPHICS_API_OPENGL
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <Unknwn.h>
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_syswm.h>
+#include <SDL3/SDL_video.h>
 #include "VRRen.h"
 
 bool VR_CreateSwapchain(VRContext& vrContext) {
@@ -35,9 +38,9 @@ bool VR_Init(VRContext& vrContext, SDL_Window* window) {
     vrContext.window = window;
 
     XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
-    strcpy(createInfo.applicationInfo.applicationName, "MiniwinVR");
+    strcpy(createInfo.applicationInfo.applicationName, "LEGO Island VR");
     createInfo.applicationInfo.applicationVersion = 1;
-    strcpy(createInfo.applicationInfo.engineName, "Miniwin");
+    strcpy(createInfo.applicationInfo.engineName, "OmniEngine");
     createInfo.applicationInfo.engineVersion = 1;
     createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
@@ -53,10 +56,9 @@ bool VR_Init(VRContext& vrContext, SDL_Window* window) {
 
 #ifdef _WIN32
     XrGraphicsBindingOpenGLWin32KHR graphicsBinding{XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR};
-    SDL_SysWMinfo wmInfo;
-    SDL_VERSION(&wmInfo.version);
-    SDL_GetWindowWMInfo(window, &wmInfo);
-    graphicsBinding.hDC   = GetDC(wmInfo.info.win.window);
+    HWND hwnd = nullptr;
+    SDL_GetWindowPointerProperty(window, SDL_WINDOW_POINTER_HWND, (void**)&hwnd);
+    graphicsBinding.hDC   = GetDC(hwnd);
     graphicsBinding.hGLRC = wglGetCurrentContext();
 #endif
 
