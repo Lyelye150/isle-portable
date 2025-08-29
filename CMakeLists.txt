@@ -577,8 +577,8 @@ if (ISLE_BUILD_APP)
 
   if(ISLE_VR)
    # links isle to openxr mainly to fix a error in the building process
-   target_include_directories(lego1 PRIVATE "${OPENXR_INC}")
-   target_link_libraries(lego1 PRIVATE "${OPENXR_LIB}")
+   target_include_directories(isle PRIVATE "${OPENXR_INC}")
+   target_link_libraries(isle PRIVATE "${OPENXR_LIB}")
   endif()
 
 
