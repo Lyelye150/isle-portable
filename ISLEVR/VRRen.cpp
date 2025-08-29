@@ -1,6 +1,5 @@
 #define XR_USE_PLATFORM_WIN32
 #define XR_USE_GRAPHICS_API_OPENGL
-#define WIN32_LEAN_AND_MEAN
 
 #include <windows.h>
 #include <Unknwn.h>
