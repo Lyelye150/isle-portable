@@ -629,9 +629,6 @@ endif()
 
     target_compile_definitions(isleVR PRIVATE ISLE_APP)
 
-    # Link LEGO1 (moved it up here to fix VRRen.cpp errors)
-    target_link_libraries(isleVR PRIVATE lego1)
-
     # links isleVR to openxr_loader.lib
     target_link_libraries(isleVR PRIVATE "${OPENXR_LIB}")
 
@@ -654,6 +651,8 @@ endif()
     if (WIN32)
       target_link_libraries(isleVR PRIVATE winmm)
     endif()
+    # Link LEGO1
+    target_link_libraries(isleVR PRIVATE lego1)
   endif()
 
 if(ISLE_VR)

@@ -1,38 +1,41 @@
 #pragma once
-#include <openxr/openxr.h>
 #include <SDL3/SDL.h>
+#include <openxr/openxr.h>
+#include <openxr/openxr_platform.h>
 #include <vector>
 
-struct VREyeFramebuffer {
-    int eyeIndex = -1;
+struct VRViewMatrix {
+    float m[16];
+};
+
+struct VRProjMatrix {
+    float m[16];
+};
+
+struct VREye {
+    XrSwapchain swapchain = XR_NULL_HANDLE;
+    int width = 0;
+    int height = 0;
 };
 
 struct VRContext {
-    XrInstance* instance = nullptr;
-    XrSystemId systemId = XR_NULL_SYSTEM_ID;
+    XrInstance instance = XR_NULL_HANDLE;
     XrSession session = XR_NULL_HANDLE;
-    bool initialized = false;
+    XrSystemId systemId = XR_NULL_SYSTEM_ID;
+    XrSpace appSpace = XR_NULL_HANDLE;
 
     SDL_Window* window = nullptr;
-
-    XrSwapchain swapchain = XR_NULL_HANDLE;
-    int32_t width = 0;
-    int32_t height = 0;
-
-    std::vector<VREyeFramebuffer> eyes;
+    std::vector<VREye> eyes;
+    bool initialized = false;
 };
 
 bool VR_Init(VRContext& vrContext, SDL_Window* window);
 void VR_Shutdown(VRContext& vrContext);
+bool VR_CreateSwapchain(VRContext& vrContext);
 
+bool VR_BindEye(VRContext& vrContext, int eyeIndex);
 bool VR_BeginFrame(VRContext& vrContext);
 void VR_EndFrame(VRContext& vrContext);
-
-bool VR_CreateSwapchain(VRContext& vrContext);
-bool VR_BindEye(VRContext& vrContext, int eyeIndex);
-
-struct VRViewMatrix { float m[16]; };
-struct VRProjMatrix { float m[16]; };
 
 VRViewMatrix VR_GetEyeViewMatrix(int eye);
 VRProjMatrix VR_GetEyeProjMatrix(int eye);

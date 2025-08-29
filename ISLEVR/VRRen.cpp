@@ -1,81 +1,117 @@
 #include "VRRen.h"
-#include <SDL3/SDL.h>
+#include <SDL3/SDL_opengl.h>
 #include <iostream>
+#include <cstring>
 
 bool VR_CreateSwapchain(VRContext& vrContext) {
     if (!vrContext.initialized) return false;
 
     vrContext.eyes.resize(2);
     for (int i = 0; i < 2; ++i) {
-        vrContext.eyes[i].eyeIndex = i;
+        XrSwapchainCreateInfo swapInfo{XR_TYPE_SWAPCHAIN_CREATE_INFO};
+        swapInfo.arraySize = 1;
+        swapInfo.format = GL_SRGB8_ALPHA8;
+        swapInfo.width = 1024;
+        swapInfo.height = 1024;
+        swapInfo.mipCount = 1;
+        swapInfo.faceCount = 1;
+        swapInfo.sampleCount = 1;
+        swapInfo.usageFlags = XR_SWAPCHAIN_USAGE_SAMPLED_BIT | XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
+
+        XrResult result = xrCreateSwapchain(vrContext.session, &swapInfo, &vrContext.eyes[i].swapchain);
+        if (XR_FAILED(result)) {
+            std::cerr << "[VRRen] Failed to create swapchain for eye " << i << std::endl;
+            return false;
+        }
+        vrContext.eyes[i].width = swapInfo.width;
+        vrContext.eyes[i].height = swapInfo.height;
     }
 
-    SDL_Log("[VRRen] Dummy per-eye swapchains created (no GL). Size: %dx%d",
-            vrContext.width, vrContext.height);
+    std::cout << "[VRRen] Swapchains created." << std::endl;
     return true;
 }
 
 bool VR_Init(VRContext& vrContext, SDL_Window* window) {
-    if (!vrContext.instance) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[VRRen] No OpenXR instance provided.");
+    vrContext.window = window;
+
+    XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
+    strcpy(createInfo.applicationInfo.applicationName, "MiniwinVR");
+    createInfo.applicationInfo.applicationVersion = 1;
+    strcpy(createInfo.applicationInfo.engineName, "Miniwin");
+    createInfo.applicationInfo.engineVersion = 1;
+    createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
+
+    if (XR_FAILED(xrCreateInstance(&createInfo, &vrContext.instance))) {
+        std::cerr << "[VRRen] Failed to create XR instance." << std::endl;
         return false;
     }
 
-    vrContext.window = window;
-
     XrSystemGetInfo sysInfo{XR_TYPE_SYSTEM_GET_INFO};
     sysInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
+    if (XR_FAILED(xrGetSystem(vrContext.instance, &sysInfo, &vrContext.systemId))) {
+        std::cerr << "[VRRen] No VR system detected." << std::endl;
+        return false;
+    }
 
-    XrResult result = xrGetSystem(*vrContext.instance, &sysInfo, &vrContext.systemId);
-    if (XR_FAILED(result)) {
-        SDL_Log("[VRRen] Runtime present but no VR detected.");
+#ifdef _WIN32
+    XrGraphicsBindingOpenGLWin32KHR graphicsBinding{XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR};
+    graphicsBinding.hDC = GetDC(SDL_GetWindowWMInfo(window)->info.win.window);
+    graphicsBinding.hGLRC = wglGetCurrentContext();
+#else
+    XrGraphicsBindingOpenGLXlibKHR graphicsBinding{XR_TYPE_GRAPHICS_BINDING_OPENGL_XLIB_KHR};
+    graphicsBinding.xDisplay = SDL_GetWindowWMInfo(window)->info.x11.display;
+    graphicsBinding.glxDrawable = SDL_GetWindowWMInfo(window)->info.x11.window;
+    graphicsBinding.glxContext = glXGetCurrentContext();
+#endif
+
+    XrSessionCreateInfo sessionInfo{XR_TYPE_SESSION_CREATE_INFO};
+    sessionInfo.next = &graphicsBinding;
+    sessionInfo.systemId = vrContext.systemId;
+
+    if (XR_FAILED(xrCreateSession(vrContext.instance, &sessionInfo, &vrContext.session))) {
+        std::cerr << "[VRRen] Failed to create XR session." << std::endl;
         return false;
     }
 
     vrContext.initialized = true;
-    vrContext.width = 1024;
-    vrContext.height = 1024;
-
-    if (!VR_CreateSwapchain(vrContext)) return false;
-
-    SDL_Log("[VRRen] VR initialized (dummy, no GL).");
-    return true;
+    return VR_CreateSwapchain(vrContext);
 }
 
 void VR_Shutdown(VRContext& vrContext) {
-    if (vrContext.initialized) {
-        vrContext.eyes.clear();
+    if (!vrContext.initialized) return;
 
-        if (vrContext.session != XR_NULL_HANDLE) {
-            vrContext.session = XR_NULL_HANDLE;
+    for (auto& eye : vrContext.eyes) {
+        if (eye.swapchain != XR_NULL_HANDLE) {
+            xrDestroySwapchain(eye.swapchain);
+            eye.swapchain = XR_NULL_HANDLE;
         }
-
-        vrContext.initialized = false;
-        SDL_Log("[VRRen] VR session shut down.");
     }
+    vrContext.eyes.clear();
+
+    if (vrContext.session != XR_NULL_HANDLE) {
+        xrDestroySession(vrContext.session);
+        vrContext.session = XR_NULL_HANDLE;
+    }
+    if (vrContext.instance != XR_NULL_HANDLE) {
+        xrDestroyInstance(vrContext.instance);
+        vrContext.instance = XR_NULL_HANDLE;
+    }
+
+    vrContext.initialized = false;
+    std::cout << "[VRRen] VR session shut down." << std::endl;
 }
 
 bool VR_BindEye(VRContext& vrContext, int eyeIndex) {
-    if (!vrContext.initialized || eyeIndex >= (int)vrContext.eyes.size()) return false;
-    SDL_Log("[VRRen] Binding eye %d (dummy, no GL)", eyeIndex);
-    return true;
+    return vrContext.initialized && eyeIndex < (int)vrContext.eyes.size();
 }
 
 bool VR_BeginFrame(VRContext& vrContext) {
     if (!vrContext.initialized) return false;
-
-    VR_BindEye(vrContext, 0);
-    SDL_Log("[VRRen] Begin frame.");
     return true;
 }
 
 void VR_EndFrame(VRContext& vrContext) {
     if (!vrContext.initialized) return;
-
-    if (vrContext.window) {
-        SDL_RenderPresent(SDL_GetRenderer(vrContext.window));
-    }
-    SDL_Log("[VRRen] End frame.");
 }
 
 VRViewMatrix VR_GetEyeViewMatrix(int eye) {

@@ -20,24 +20,82 @@
 #include <SDL3/SDL.h>
 
 #ifdef USE_VR
+static VRContext g_vrContext;
+
+static SDL_Window* GetSDLWindowForVR()
+{
+    SDL_Window* win = nullptr;
+
+    if (!win) {
+        win = SDL_GetWindowFromID(1);
+        if (!win) {
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                        "[VR] Could not resolve SDL_Window for VR (GetWindowFromID(1) failed). "
+                        "Continuing; OpenXR swapchain path may still work.");
+        }
+    }
+    return win;
+}
 
 class Direct3DRMVRRenderer : public Direct3DRMRenderer
 {
 public:
-    explicit Direct3DRMVRRenderer(Direct3DRMRenderer* backend) : backend_(backend) {}
+    explicit Direct3DRMVRRenderer(Direct3DRMRenderer* backend)
+        : backend_(backend)
+    {}
+
+    ~Direct3DRMVRRenderer() override
+    {
+        if (g_vrContext.initialized) {
+            VR_Shutdown(g_vrContext);
+        }
+    }
 
     void PushLights(const SceneLight* vertices, size_t count) override { backend_->PushLights(vertices, count); }
     void SetProjection(const D3DRMMATRIX4D& projection, D3DVALUE front, D3DVALUE back) override { backend_->SetProjection(projection, front, back); }
     void SetFrustumPlanes(const Plane* frustumPlanes) override { backend_->SetFrustumPlanes(frustumPlanes); }
     Uint32 GetTextureId(IDirect3DRMTexture* texture, bool isUI = false, float scaleX = 0, float scaleY = 0) override { return backend_->GetTextureId(texture, isUI, scaleX, scaleY); }
     Uint32 GetMeshId(IDirect3DRMMesh* mesh, const MeshGroup* meshGroup) override { return backend_->GetMeshId(mesh, meshGroup); }
-    HRESULT BeginFrame() override { return backend_->BeginFrame(); }
+
+    // Hook VR begin/end frame so the OpenXR session can advance
+    HRESULT BeginFrame() override
+    {
+        if (g_vrContext.initialized) {
+            // Start XR frame and set up the left eye as default draw target
+            if (!VR_BeginFrame(g_vrContext)) {
+                SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "[VR] VR_BeginFrame failed; rendering mono this frame.");
+            }
+        }
+        return backend_->BeginFrame();
+    }
+
     void EnableTransparency() override { backend_->EnableTransparency(); }
-    void SubmitDraw(DWORD meshId, const D3DRMMATRIX4D& modelViewMatrix, const D3DRMMATRIX4D& worldMatrix, const D3DRMMATRIX4D& viewMatrix, const Matrix3x3& normalMatrix, const Appearance& appearance) override {
+
+    void SubmitDraw(
+        DWORD meshId,
+        const D3DRMMATRIX4D& modelViewMatrix,
+        const D3DRMMATRIX4D& worldMatrix,
+        const D3DRMMATRIX4D& viewMatrix,
+        const Matrix3x3& normalMatrix,
+        const Appearance& appearance) override
+    {
         backend_->SubmitDraw(meshId, modelViewMatrix, worldMatrix, viewMatrix, normalMatrix, appearance);
     }
-    HRESULT FinalizeFrame() override { return backend_->FinalizeFrame(); }
-    void Resize(int width, int height, const ViewportTransform& viewportTransform) override { backend_->Resize(width, height, viewportTransform); }
+
+    HRESULT FinalizeFrame() override
+    {
+        HRESULT hr = backend_->FinalizeFrame();
+        if (g_vrContext.initialized) {
+            VR_EndFrame(g_vrContext);
+        }
+        return hr;
+    }
+
+    void Resize(int width, int height, const ViewportTransform& viewportTransform) override
+    {
+        backend_->Resize(width, height, viewportTransform);
+    }
+
     void Clear(float r, float g, float b) override { backend_->Clear(r, g, b); }
     void Flip() override { backend_->Flip(); }
     void Draw2DImage(Uint32 textureId, const SDL_Rect& srcRect, const SDL_Rect& dstRect, FColor color) override { backend_->Draw2DImage(textureId, srcRect, dstRect, color); }
@@ -47,8 +105,7 @@ public:
 private:
     Direct3DRMRenderer* backend_;
 };
-
-#endif
+#endif // USE_VR
 
 Direct3DRMPickedArrayImpl::Direct3DRMPickedArrayImpl(const PickRecord* inputPicks, size_t count)
 {
@@ -190,6 +247,13 @@ HRESULT Direct3DRMImpl::CreateDeviceFromSurface(const GUID* guid, IDirectDraw* d
     }
 
 #ifdef USE_VR
+    if (!g_vrContext.initialized) {
+        SDL_Window* win = GetSDLWindowForVR();
+        if (!VR_Init(g_vrContext, win)) {
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "[VR] VR_Init failed; continuing without XR session.");
+        }
+    }
+
     DDRenderer = new Direct3DRMVRRenderer(DDRenderer);
 #endif
 

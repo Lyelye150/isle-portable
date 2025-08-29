@@ -125,6 +125,7 @@ target_include_directories(miniwin
     ${CMAKE_CURRENT_SOURCE_DIR}/src/internal
     ${CMAKE_CURRENT_SOURCE_DIR}/src/d3drm/backends/sdl3gpu/shaders/generated
 )
+if(ISLE_VR)
 target_sources(miniwin PUBLIC
     ${CMAKE_SOURCE_DIR}/ISLEVR/VRRen.cpp
 )
@@ -137,6 +138,7 @@ target_include_directories(miniwin PUBLIC
 )
 
 target_link_libraries(miniwin PUBLIC "${OPENXR_LIB}")
+endif()
 
 target_link_libraries(miniwin PUBLIC miniwin-headers)
 
