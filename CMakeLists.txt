@@ -497,6 +497,11 @@ target_sources(lego1 PRIVATE
   LEGO1/modeldb/modeldb.cpp
 )
 target_link_libraries(lego1 PRIVATE Vec::Vec)
+if(ISLE_VR)
+  # links lego1 to openxr_loader.lib mainly to fix a error in the building process
+  target_link_libraries(lego1 PRIVATE "${OPENXR_LIB}")
+endif()
+
 if (NOT ISLE_MINIWIN)
   target_link_libraries(lego1 PRIVATE d3drm dxguid)
   target_compile_definitions(lego1 PRIVATE DIRECTINPUT_VERSION=0x0500)
