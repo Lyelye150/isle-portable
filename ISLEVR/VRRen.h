@@ -3,9 +3,6 @@
 #include <vector>
 
 // --- Added this to fix a error during the building process ---
-typedef unsigned long DWORD;
-typedef long LONG;
-typedef void* HANDLE;
 
 typedef struct HDC__* HDC;
 typedef struct HGLRC__* HGLRC;
@@ -17,13 +14,6 @@ typedef union _LARGE_INTEGER {
     };
     long long QuadPart;
 } LARGE_INTEGER;
-
-typedef HANDLE XRHANDLE;
-typedef void* XrInstance;
-typedef void* XrSystemId;
-typedef void* XrSession;
-typedef void* XrSpace;
-typedef void* XrSwapchain;
 
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
