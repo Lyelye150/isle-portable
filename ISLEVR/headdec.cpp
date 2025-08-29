@@ -56,7 +56,7 @@ bool isVRHeadsetConnected() {
     XrInstance instance = XR_NULL_HANDLE;
     XrInstanceCreateInfo createInfo{ XR_TYPE_INSTANCE_CREATE_INFO };
     memset(&createInfo, 0, sizeof(createInfo));
-    strcpy(createInfo.applicationInfo.applicationName, "LEGO Island (VR MODE)");
+    strcpy(createInfo.applicationInfo.applicationName, "LEGO Island VR");
     createInfo.applicationInfo.applicationVersion = 1;
     strcpy(createInfo.applicationInfo.engineName, "OmniEngine");
     createInfo.applicationInfo.engineVersion = 1;

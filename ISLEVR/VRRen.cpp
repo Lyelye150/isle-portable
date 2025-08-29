@@ -52,13 +52,6 @@ bool VR_Init(VRContext& vrContext, SDL_Window* window, VRRenderer renderer) {
     vrContext.window = window;
     vrContext.renderer = renderer;
 
-    XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
-    std::strcpy(createInfo.applicationInfo.applicationName, "LEGO Island VR");
-    createInfo.applicationInfo.applicationVersion = 1;
-    std::strcpy(createInfo.applicationInfo.engineName, "OmniEngine");
-    createInfo.applicationInfo.engineVersion = 1;
-    createInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
-
     if (XR_FAILED(xrCreateInstance(&createInfo, &vrContext.instance))) return false;
 
     XrSystemGetInfo sysInfo{XR_TYPE_SYSTEM_GET_INFO};

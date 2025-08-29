@@ -46,18 +46,12 @@ enum class VRRenderer {
 };
 
 struct VRContext {
-    XrInstance instance = XR_NULL_HANDLE;
-    XrSession session = XR_NULL_HANDLE;
-    XrSystemId systemId = XR_NULL_SYSTEM_ID;
-    XrSpace appSpace = XR_NULL_HANDLE;
-
     SDL_Window* window = nullptr;
     std::vector<VREye> eyes;
     bool initialized = false;
     VRRenderer renderer = VRRenderer::OpenGL1;
 };
 
-// --- Functions ---
 bool VR_Init(VRContext& vrContext, SDL_Window* window, VRRenderer renderer = VRRenderer::OpenGL1);
 void VR_Shutdown(VRContext& vrContext);
 bool VR_CreateSwapchain(VRContext& vrContext);
