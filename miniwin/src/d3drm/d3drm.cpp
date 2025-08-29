@@ -24,15 +24,14 @@ static VRContext g_vrContext;
 
 static SDL_Window* GetSDLWindowForVR()
 {
-    SDL_Window* win = nullptr;
-
+    SDL_Window* win = SDL_GL_GetCurrentWindow();
     if (!win) {
         win = SDL_GetWindowFromID(1);
-        if (!win) {
-            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
-                        "[VR] Could not resolve SDL_Window for VR (GetWindowFromID(1) failed). "
-                        "Continuing; OpenXR swapchain path may still work.");
-        }
+    }
+    if (!win) {
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                    "[VR] Could not resolve SDL_Window for VR. VR session will be disabled this frame.");
+        return nullptr;
     }
     return win;
 }
@@ -48,6 +47,7 @@ public:
     {
         if (g_vrContext.initialized) {
             VR_Shutdown(g_vrContext);
+            g_vrContext.initialized = false;
         }
     }
 
@@ -56,30 +56,27 @@ public:
     void SetFrustumPlanes(const Plane* frustumPlanes) override { backend_->SetFrustumPlanes(frustumPlanes); }
     Uint32 GetTextureId(IDirect3DRMTexture* texture, bool isUI = false, float scaleX = 0, float scaleY = 0) override { return backend_->GetTextureId(texture, isUI, scaleX, scaleY); }
     Uint32 GetMeshId(IDirect3DRMMesh* mesh, const MeshGroup* meshGroup) override { return backend_->GetMeshId(mesh, meshGroup); }
+    void EnableTransparency() override { backend_->EnableTransparency(); }
+    void Resize(int width, int height, const ViewportTransform& viewportTransform) override { backend_->Resize(width, height, viewportTransform); }
+    void Clear(float r, float g, float b) override { backend_->Clear(r, g, b); }
+    void Flip() override { backend_->Flip(); }
+    void Draw2DImage(Uint32 textureId, const SDL_Rect& srcRect, const SDL_Rect& dstRect, FColor color) override { backend_->Draw2DImage(textureId, srcRect, dstRect, color); }
+    void Download(SDL_Surface* target) override { backend_->Download(target); }
+    void SetDither(bool dither) override { backend_->SetDither(dither); }
+    void SubmitDraw(DWORD meshId, const D3DRMMATRIX4D& modelViewMatrix, const D3DRMMATRIX4D& worldMatrix,
+                    const D3DRMMATRIX4D& viewMatrix, const Matrix3x3& normalMatrix, const Appearance& appearance) override
+    { backend_->SubmitDraw(meshId, modelViewMatrix, worldMatrix, viewMatrix, normalMatrix, appearance); }
 
-    // Hook VR begin/end frame so the OpenXR session can advance
     HRESULT BeginFrame() override
     {
         if (g_vrContext.initialized) {
-            // Start XR frame and set up the left eye as default draw target
             if (!VR_BeginFrame(g_vrContext)) {
-                SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "[VR] VR_BeginFrame failed; rendering mono this frame.");
+                SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "[VR] VR_BeginFrame failed; rendering mono.");
+            } else {
+                VR_BindEye(g_vrContext, 0);
             }
         }
         return backend_->BeginFrame();
-    }
-
-    void EnableTransparency() override { backend_->EnableTransparency(); }
-
-    void SubmitDraw(
-        DWORD meshId,
-        const D3DRMMATRIX4D& modelViewMatrix,
-        const D3DRMMATRIX4D& worldMatrix,
-        const D3DRMMATRIX4D& viewMatrix,
-        const Matrix3x3& normalMatrix,
-        const Appearance& appearance) override
-    {
-        backend_->SubmitDraw(meshId, modelViewMatrix, worldMatrix, viewMatrix, normalMatrix, appearance);
     }
 
     HRESULT FinalizeFrame() override
@@ -91,21 +88,10 @@ public:
         return hr;
     }
 
-    void Resize(int width, int height, const ViewportTransform& viewportTransform) override
-    {
-        backend_->Resize(width, height, viewportTransform);
-    }
-
-    void Clear(float r, float g, float b) override { backend_->Clear(r, g, b); }
-    void Flip() override { backend_->Flip(); }
-    void Draw2DImage(Uint32 textureId, const SDL_Rect& srcRect, const SDL_Rect& dstRect, FColor color) override { backend_->Draw2DImage(textureId, srcRect, dstRect, color); }
-    void Download(SDL_Surface* target) override { backend_->Download(target); }
-    void SetDither(bool dither) override { backend_->SetDither(dither); }
-
 private:
     Direct3DRMRenderer* backend_;
 };
-#endif // USE_VR
+#endif
 
 Direct3DRMPickedArrayImpl::Direct3DRMPickedArrayImpl(const PickRecord* inputPicks, size_t count)
 {
@@ -113,14 +99,8 @@ Direct3DRMPickedArrayImpl::Direct3DRMPickedArrayImpl(const PickRecord* inputPick
     for (size_t i = 0; i < count; ++i)
     {
         const PickRecord& pick = inputPicks[i];
-        if (pick.visual)
-        {
-            pick.visual->AddRef();
-        }
-        if (pick.frameArray)
-        {
-            pick.frameArray->AddRef();
-        }
+        if (pick.visual) pick.visual->AddRef();
+        if (pick.frameArray) pick.frameArray->AddRef();
         picks.push_back(pick);
     }
 }
@@ -129,81 +109,42 @@ Direct3DRMPickedArrayImpl::~Direct3DRMPickedArrayImpl()
 {
     for (PickRecord& pick : picks)
     {
-        if (pick.visual)
-        {
-            pick.visual->Release();
-        }
-        if (pick.frameArray)
-        {
-            pick.frameArray->Release();
-        }
+        if (pick.visual) pick.visual->Release();
+        if (pick.frameArray) pick.frameArray->Release();
     }
 }
 
-DWORD Direct3DRMPickedArrayImpl::GetSize()
-{
-    return static_cast<DWORD>(picks.size());
-}
+DWORD Direct3DRMPickedArrayImpl::GetSize() { return static_cast<DWORD>(picks.size()); }
 
 HRESULT Direct3DRMPickedArrayImpl::GetPick(DWORD index, IDirect3DRMVisual** visual, IDirect3DRMFrameArray** frameArray,
                                            D3DRMPICKDESC* desc)
 {
-    if (index >= picks.size())
-    {
-        return DDERR_INVALIDPARAMS;
-    }
+    if (index >= picks.size()) return DDERR_INVALIDPARAMS;
 
     const PickRecord& pick = picks[index];
-
     *visual = pick.visual;
     *frameArray = pick.frameArray;
     *desc = pick.desc;
 
-    if (*visual)
-    {
-        (*visual)->AddRef();
-    }
-    if (*frameArray)
-    {
-        (*frameArray)->AddRef();
-    }
+    if (*visual) (*visual)->AddRef();
+    if (*frameArray) (*frameArray)->AddRef();
 
     return DD_OK;
 }
 
 struct Direct3DRMWinDeviceImpl : public IDirect3DRMWinDevice
 {
-    HRESULT Activate() override
-    {
-        MINIWIN_NOT_IMPLEMENTED();
-        return DD_OK;
-    }
-    HRESULT Paint() override
-    {
-        MINIWIN_NOT_IMPLEMENTED();
-        return DD_OK;
-    }
-    void HandleActivate(WORD wParam) override
-    {
-        MINIWIN_NOT_IMPLEMENTED();
-    }
-    void HandlePaint(void* p_dc) override
-    {
-        MINIWIN_NOT_IMPLEMENTED();
-    }
+    HRESULT Activate() override { MINIWIN_NOT_IMPLEMENTED(); return DD_OK; }
+    HRESULT Paint() override { MINIWIN_NOT_IMPLEMENTED(); return DD_OK; }
+    void HandleActivate(WORD wParam) override { MINIWIN_NOT_IMPLEMENTED(); }
+    void HandlePaint(void* p_dc) override { MINIWIN_NOT_IMPLEMENTED(); }
 };
 
 struct Direct3DRMMaterialImpl : public Direct3DRMObjectBaseImpl<IDirect3DRMMaterial>
 {
-    Direct3DRMMaterialImpl(D3DVALUE power) : m_power(power)
-    {
-    }
-    D3DVALUE GetPower() override
-    {
-        return m_power;
-    }
-
-  private:
+    Direct3DRMMaterialImpl(D3DVALUE power) : m_power(power) {}
+    D3DVALUE GetPower() override { return m_power; }
+private:
     D3DVALUE m_power;
 };
 
@@ -223,8 +164,7 @@ HRESULT Direct3DRMImpl::CreateDeviceFromD3D(const IDirect3D2* d3d, IDirect3DDevi
                                             IDirect3DRMDevice2** outDevice)
 {
     auto renderer = static_cast<Direct3DRMRenderer*>(d3dDevice);
-    *outDevice = static_cast<IDirect3DRMDevice2*>(
-        new Direct3DRMDevice2Impl(renderer->GetVirtualWidth(), renderer->GetVirtualHeight(), renderer));
+    *outDevice = static_cast<IDirect3DRMDevice2*>(new Direct3DRMDevice2Impl(renderer->GetVirtualWidth(), renderer->GetVirtualHeight(), renderer));
     return DD_OK;
 }
 
@@ -257,8 +197,7 @@ HRESULT Direct3DRMImpl::CreateDeviceFromSurface(const GUID* guid, IDirectDraw* d
     DDRenderer = new Direct3DRMVRRenderer(DDRenderer);
 #endif
 
-    *outDevice =
-        static_cast<IDirect3DRMDevice2*>(new Direct3DRMDevice2Impl(DDSDesc.dwWidth, DDSDesc.dwHeight, DDRenderer));
+    *outDevice = static_cast<IDirect3DRMDevice2*>(new Direct3DRMDevice2Impl(DDSDesc.dwWidth, DDSDesc.dwHeight, DDRenderer));
     return DD_OK;
 }
 
@@ -304,24 +243,14 @@ HRESULT Direct3DRMImpl::CreateViewport(IDirect3DRMDevice2* iDevice, IDirect3DRMF
 {
     auto device = static_cast<Direct3DRMDevice2Impl*>(iDevice);
     auto* viewport = new Direct3DRMViewportImpl(width, height, device->m_renderer);
-    if (camera)
-    {
-        viewport->SetCamera(camera);
-    }
+    if (camera) viewport->SetCamera(camera);
     *outViewport = static_cast<IDirect3DRMViewport*>(viewport);
     device->AddViewport(*outViewport);
     return DD_OK;
 }
 
-HRESULT Direct3DRMImpl::SetDefaultTextureShades(DWORD count)
-{
-    return DD_OK;
-}
-
-HRESULT Direct3DRMImpl::SetDefaultTextureColors(DWORD count)
-{
-    return DD_OK;
-}
+HRESULT Direct3DRMImpl::SetDefaultTextureShades(DWORD count) { return DD_OK; }
+HRESULT Direct3DRMImpl::SetDefaultTextureColors(DWORD count) { return DD_OK; }
 
 HRESULT WINAPI Direct3DRMCreate(IDirect3DRM** direct3DRM)
 {
@@ -335,6 +264,5 @@ D3DCOLOR D3DRMCreateColorRGBA(D3DVALUE red, D3DVALUE green, D3DVALUE blue, D3DVA
     int r = static_cast<int>(255.f * red);
     int g = static_cast<int>(255.f * green);
     int b = static_cast<int>(255.f * blue);
-
     return (a << 24) | (r << 16) | (g << 8) | b;
 }

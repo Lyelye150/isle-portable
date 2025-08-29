@@ -2,34 +2,11 @@
 
 #include <SDL3/SDL.h>
 #include <vector>
-
-// --- Added this to fix a error during the building process ---
-
-typedef struct HDC__* HDC;
-typedef struct HGLRC__* HGLRC;
-
-typedef union _LARGE_INTEGER {
-    struct {
-        DWORD LowPart;
-        LONG HighPart;
-    };
-    long long QuadPart;
-} LARGE_INTEGER;
-
-struct IUnknown;
-
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 
-// ------------------------------------------------ - big line Lyelye 2025 (you can remove this or not)
-
-struct VRViewMatrix {
-    float m[16];
-};
-
-struct VRProjMatrix {
-    float m[16];
-};
+struct VRViewMatrix { float m[16]; };
+struct VRProjMatrix { float m[16]; };
 
 struct VREye {
     XrSwapchain swapchain = XR_NULL_HANDLE;
@@ -53,6 +30,8 @@ struct VRContext {
     XrSpace appSpace = XR_NULL_HANDLE;
 
     SDL_Window* window = nullptr;
+    SDL_GLContext glContext = nullptr;
+
     std::vector<VREye> eyes;
     bool initialized = false;
     VRRenderer renderer = VRRenderer::OpenGL1;
