@@ -527,7 +527,6 @@ if(ISLE_VR)
   # links lego1 to openxr mainly to fix a error in the building process
   target_include_directories(lego1 PRIVATE "${OPENXR_INC}")
   target_link_libraries(lego1 PRIVATE "${OPENXR_LIB}")
-  target_link_libraries(lego1 PRIVATE "${OPENXR_DLL}")
 endif()
 
 if (NOT ISLE_MINIWIN)
@@ -664,9 +663,6 @@ endif()
 
     # links isleVR to openxrs includes binaries
     target_include_directories(isleVR PRIVATE "${OPENXR_INC}")
-
-    # links isleVR to openxr_loader.dll
-    target_link_libraries(isleVR PRIVATE "${OPENXR_DLL}")
 
     # links isleVR to openxr_loader.lib
     target_link_libraries(isleVR PRIVATE "${OPENXR_LIB}")
