@@ -22,7 +22,7 @@ enum class VRRenderer {
     OpenGL1,
     OpenGLES2,
     OpenGLES3,
-	Directx9,
+    Directx9,
     SDL3GPU,
     Software
 };

@@ -12,12 +12,6 @@
 #include <cstring>
 #include <iostream>
 
-#ifdef _WIN32
-HWND GetSDLWindowHWND(SDL_Window* window) {
-    return SDL_GetWindowNativeHandle(window);
-}
-#endif
-
 bool VR_CreateSwapchain(VRContext& vrContext) {
     if (!vrContext.initialized) return false;
 
@@ -27,12 +21,14 @@ bool VR_CreateSwapchain(VRContext& vrContext) {
         swapInfo.arraySize = 1;
 
         switch (vrContext.renderer) {
-            case VRRenderer::OpenGL1: swapInfo.format = 0; break;
-            case VRRenderer::OpenGLES2: swapInfo.format = 0; break;
-            case VRRenderer::OpenGLES3: swapInfo.format = 0; break;
-			case VRRenderer::Directx9: swapInfo.format = 0; break;
-            case VRRenderer::SDL3GPU: swapInfo.format = 0; break;
-            case VRRenderer::Software: swapInfo.format = 0; break;
+            case VRRenderer::OpenGL1:
+            case VRRenderer::OpenGLES2:
+            case VRRenderer::OpenGLES3:
+            case VRRenderer::Directx9:
+            case VRRenderer::SDL3GPU:
+            case VRRenderer::Software:
+                swapInfo.format = 0;
+                break;
         }
 
         swapInfo.width = 1024;
@@ -77,11 +73,8 @@ bool VR_Init(VRContext& vrContext, SDL_Window* window, VRRenderer renderer) {
         case VRRenderer::OpenGLES2:
         case VRRenderer::OpenGLES3: {
             XrGraphicsBindingOpenGLWin32KHR graphicsBinding{XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR};
-            HWND hwnd = GetSDLWindowHWND(window);
-            graphicsBinding.hDC   = GetDC(hwnd);
-
-            if (renderer == VRRenderer::OpenGL1) graphicsBinding.hGLRC = wglGetCurrentContext();
-            else graphicsBinding.hGLRC = nullptr; // placeholder for GLES/other
+            graphicsBinding.hDC   = nullptr;
+            graphicsBinding.hGLRC = nullptr;
 
             XrSessionCreateInfo sessionInfo{XR_TYPE_SESSION_CREATE_INFO};
             sessionInfo.next     = static_cast<void*>(&graphicsBinding);
@@ -92,10 +85,13 @@ bool VR_Init(VRContext& vrContext, SDL_Window* window, VRRenderer renderer) {
         case VRRenderer::SDL3GPU:
         case VRRenderer::Software: {
             XrSessionCreateInfo sessionInfo{XR_TYPE_SESSION_CREATE_INFO};
-            sessionInfo.next     = nullptr; // software / SDL3GPU placeholder
+            sessionInfo.next     = nullptr;
             sessionInfo.systemId = vrContext.systemId;
             if (XR_FAILED(xrCreateSession(vrContext.instance, &sessionInfo, &vrContext.session))) return false;
         } break;
+
+        case VRRenderer::Directx9:
+            break;
     }
 #endif
 
