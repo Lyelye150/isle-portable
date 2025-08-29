@@ -1,8 +1,7 @@
 #define XR_USE_PLATFORM_WIN32
 #define XR_USE_GRAPHICS_API_OPENGL
-#define WIN32_LEAN_AND_MEAN
 
-#include <Unknwn.h>
+#include "miniwin/windows.h"
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 #include <SDL3/SDL.h>
