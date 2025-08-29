@@ -179,6 +179,32 @@ target_link_directories(DirectX5::DirectX5 INTERFACE "${CMAKE_SOURCE_DIR}/3rdpar
 add_library(Vec::Vec INTERFACE IMPORTED)
 target_include_directories(Vec::Vec INTERFACE "${CMAKE_SOURCE_DIR}/3rdparty/vec")
 
+if(ISLE_VR)
+    set(OPENXR_SDK_DIR "${CMAKE_SOURCE_DIR}/3rdparty/openxr_loader_WIN")
+
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        if(CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64")
+            set(OPENXR_ARCH_DIR x64)
+        elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+            set(OPENXR_ARCH_DIR ARM64_uwp)
+        else()
+            message(WARNING "Unsupported 64-bit architecture for OpenXR; skipping")
+        endif()
+
+        set(OPENXR_INC "${OPENXR_SDK_DIR}/include")
+        set(OPENXR_LIB "${OPENXR_SDK_DIR}/${OPENXR_ARCH_DIR}/lib/openxr_loader.lib")
+        set(OPENXR_DLL "${OPENXR_SDK_DIR}/${OPENXR_ARCH_DIR}/bin/openxr_loader.dll")
+    endif()
+endif()
+
+if(MINGW)
+    foreach(tgt XrApiLayer_core_validation)
+        if(TARGET ${tgt})
+            target_compile_options(${tgt} PRIVATE -Wno-error -Wno-error=address)
+        endif()
+    endforeach()
+endif()
+
 add_library(lego1
   LEGO1/main.cpp
 )
@@ -498,8 +524,10 @@ target_sources(lego1 PRIVATE
 )
 target_link_libraries(lego1 PRIVATE Vec::Vec)
 if(ISLE_VR)
-  # links lego1 to openxr_loader.lib mainly to fix a error in the building process
+  # links lego1 to openxr mainly to fix a error in the building process
+  target_include_directories(lego1 PRIVATE "${OPENXR_INC}")
   target_link_libraries(lego1 PRIVATE "${OPENXR_LIB}")
+  target_link_libraries(lego1 PRIVATE "${OPENXR_DLL}")
 endif()
 
 if (NOT ISLE_MINIWIN)
@@ -634,6 +662,12 @@ endif()
 
     target_compile_definitions(isleVR PRIVATE ISLE_APP)
 
+    # links isleVR to openxrs includes binaries
+    target_include_directories(isleVR PRIVATE "${OPENXR_INC}")
+
+    # links isleVR to openxr_loader.dll
+    target_link_libraries(isleVR PRIVATE "${OPENXR_DLL}")
+
     # links isleVR to openxr_loader.lib
     target_link_libraries(isleVR PRIVATE "${OPENXR_LIB}")
 
@@ -660,40 +694,13 @@ endif()
     target_link_libraries(isleVR PRIVATE lego1)
   endif()
 
-if(ISLE_VR)
-    set(OPENXR_SDK_DIR "${CMAKE_SOURCE_DIR}/3rdparty/openxr_loader_WIN")
-
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        if(CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64")
-            set(OPENXR_ARCH_DIR x64)
-        elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
-            set(OPENXR_ARCH_DIR ARM64_uwp)
-        else()
-            message(WARNING "Unsupported 64-bit architecture for OpenXR; skipping")
-        endif()
-
-        set(OPENXR_INC "${OPENXR_SDK_DIR}/include")
-        set(OPENXR_LIB "${OPENXR_SDK_DIR}/${OPENXR_ARCH_DIR}/lib/openxr_loader.lib")
-        set(OPENXR_DLL "${OPENXR_SDK_DIR}/${OPENXR_ARCH_DIR}/bin/openxr_loader.dll")
-
-        target_include_directories(isleVR PRIVATE "${OPENXR_INC}")
-        target_link_libraries(isleVR PRIVATE "${OPENXR_LIB}")
-
-        add_custom_command(TARGET isleVR POST_BUILD
+  if(ISLE_VR)
+          add_custom_command(TARGET isleVR POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${OPENXR_DLL}" $<TARGET_FILE_DIR:isleVR>)
     else()
         message(STATUS "OpenXR is only supported for 64-bit builds; skipping")
-    endif()
-endif()
-
-if(MINGW)
-    foreach(tgt XrApiLayer_core_validation)
-        if(TARGET ${tgt})
-            target_compile_options(${tgt} PRIVATE -Wno-error -Wno-error=address)
-        endif()
-    endforeach()
-endif()
+  endif()
 
   if(NINTENDO_3DS)
     target_sources(isle PRIVATE
