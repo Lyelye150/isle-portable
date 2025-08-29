@@ -575,6 +575,13 @@ if (ISLE_BUILD_APP)
 
   target_compile_definitions(isle PRIVATE ISLE_APP)
 
+  if(ISLE_VR)
+   # links isle to openxr mainly to fix a error in the building process
+   target_include_directories(lego1 PRIVATE "${OPENXR_INC}")
+   target_link_libraries(lego1 PRIVATE "${OPENXR_LIB}")
+  endif()
+
+
   # Use internal DirectX 5 if required
   target_link_libraries(isle PRIVATE $<$<BOOL:${ISLE_USE_DX5}>:DirectX5::DirectX5>)
 
