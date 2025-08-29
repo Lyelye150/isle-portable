@@ -15,6 +15,8 @@ typedef union _LARGE_INTEGER {
     long long QuadPart;
 } LARGE_INTEGER;
 
+struct IUnknown;
+
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 
