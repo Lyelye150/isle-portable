@@ -29,8 +29,7 @@ static SDL_Window* GetSDLWindowForVR()
         win = SDL_GetWindowFromID(1);
     }
     if (!win) {
-        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
-                    "[VR] Could not resolve SDL_Window for VR. VR session will be disabled this frame.");
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "[VR] Could not resolve SDL_Window for VR. VR session will be disabled this frame.");
         return nullptr;
     }
     return win;

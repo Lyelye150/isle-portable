@@ -42,10 +42,10 @@ find_program(SDL_SHADERCROSS_BIN NAMES "shadercross")
 find_package(Python3 3.12 COMPONENTS Interpreter)
 
 option(ISLE_BUILD_APP "Build isle application" ON)
-if(NOT IOS AND NOT EMSCRIPTEN AND NOT NINTENDO_3DS AND NOT ANDROID AND NOT WINDOWS_STORE AND NOT LINUX AND NOT APPLE)
-option(ISLE_VR "Build and enables VR/XR support" ON)
-else()
+if(IOS AND EMSCRIPTEN AND NINTENDO_3DS AND ANDROID AND WINDOWS_STORE AND LINUX AND APPLE)
 option(ISLE_VR "Build and enables VR/XR support" OFF)
+else()
+option(ISLE_VR "Build and enables VR/XR support" ON)
 endif()
 option(ISLE_BUILD_ASSETS "Build assets from the /assets directory" OFF)
 option(ISLE_ASAN "Enable Address Sanitizer" OFF)
@@ -682,9 +682,6 @@ endif()
 
     # Allow unconditional include of miniwin/miniwindevice.h
     target_link_libraries(isleVR PRIVATE miniwin-headers)
-
-    # Define MINIWIN macro for conditional compilation
-    target_compile_definitions(isleVR PRIVATE MINIWIN)
 
     # Vector math
     target_link_libraries(isleVR PRIVATE Vec::Vec)
