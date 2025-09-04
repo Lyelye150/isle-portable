@@ -684,9 +684,6 @@ endif()
     # Vector math
     target_link_libraries(isleVR PRIVATE Vec::Vec)
 
-    # added this to fux an error during the building process
-    target_link_libraries(lego1 PRIVATE miniwin isleVR)
-
     # Link DSOUND and WINMM
     if (WIN32)
       target_link_libraries(isleVR PRIVATE winmm)
