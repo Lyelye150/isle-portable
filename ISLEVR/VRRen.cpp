@@ -1,7 +1,9 @@
 #define XR_USE_PLATFORM_WIN32
 #define XR_USE_GRAPHICS_API_OPENGL
 
-#include "../d3drm/backends/opengl1/actual.h"
+// just in case if theres any errors
+#include "../miniwin/src/d3drm/backends/opengl1/actual.h"
+// end of this include...
 #include "VRRen.h"
 
 #include <iostream>

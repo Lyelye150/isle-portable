@@ -1,7 +1,19 @@
 #pragma once
 
+#ifdef MINIWIN
+#include "miniwin/windows.h"
+#else
+#include <windows.h>
+#endif
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_properties.h>
+
+#define XR_USE_GRAPHICS_API_OPENGL
+#include <openxr/openxr.h>
+#include <openxr/openxr_platform.h>
+#include <openxr/openxr_platform_defines.h>
+
+#include "../miniwin/src/d3drm/backends/opengl1/actual.h"
 #include <vector>
 #include <cstdint>
 
@@ -32,9 +44,6 @@ typedef union _LARGE_INTEGER {
     } u;
     long long QuadPart;
 } LARGE_INTEGER;
-
-#include <openxr/openxr.h>
-#include <openxr/openxr_platform.h>
 
 // ------------------------------------------------ - big line Lyelye 2025 (you can remove this (MESSAGE NOT THE CODE) or not)
 
