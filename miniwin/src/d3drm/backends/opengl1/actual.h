@@ -1,6 +1,7 @@
 #pragma once
 
-#include "structs.h"
+// changed this part of the code to fix an error during the building process
+#include <internal/structs.h>
 
 #include <SDL3/SDL.h>
 #include <stdint.h>
