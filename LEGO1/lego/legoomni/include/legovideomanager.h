@@ -8,8 +8,8 @@
 #include "mxvideomanager.h"
 
 #ifdef MINIWIN
-#include <miniwin/d3drm.h>
-#include <miniwin/ddraw.h>
+#include "miniwin/d3drm.h"
+#include "miniwin/ddraw.h"
 #else
 #include <d3drm.h>
 #include <ddraw.h>
