@@ -120,9 +120,11 @@ if(ISLE_VR)
 target_compile_definitions(miniwin PUBLIC USE_VR)
 endif()
 
+# changed this to fix an error during the building process
 target_include_directories(miniwin
-  PRIVATE
+  PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/internal
+  PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/d3drm/backends/sdl3gpu/shaders/generated
 )
 if(ISLE_VR)
