@@ -38,6 +38,24 @@ private:
     SDL_GLContext m_glContext;
 };
 
+typedef struct HGLRC__* HGLRC;
+typedef struct HDC__* HDC;
+
+#ifndef _LARGE_INTEGER_DEFINED
+#define _LARGE_INTEGER_DEFINED
+typedef union _LARGE_INTEGER {
+    struct {
+        DWORD LowPart;
+        LONG HighPart;
+    };
+    struct {
+        DWORD LowPart;
+        LONG HighPart;
+    } u;
+    LONGLONG QuadPart;
+} LARGE_INTEGER;
+#endif
+
 struct VRViewMatrix { float m[16]; };
 struct VRProjMatrix { float m[16]; };
 
