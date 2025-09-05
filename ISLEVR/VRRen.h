@@ -5,10 +5,13 @@
 #else
 #include <windows.h>
 #endif
+
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_properties.h>
 
 #define XR_USE_GRAPHICS_API_OPENGL
+#define XR_USE_PLATFORM_WIN32
+
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 #include <openxr/openxr_platform_defines.h>
@@ -34,18 +37,6 @@ private:
     SDL_Window* m_window;
     SDL_GLContext m_glContext;
 };
-
-// --- Added this to fix a error during the building process ---
-
-typedef union _LARGE_INTEGER {
-    struct {
-        DWORD LowPart;
-        LONG  HighPart;
-    } u;
-    long long QuadPart;
-} LARGE_INTEGER;
-
-// ------------------------------------------------ - big line Lyelye 2025 (you can remove this (MESSAGE NOT THE CODE) or not)
 
 struct VRViewMatrix { float m[16]; };
 struct VRProjMatrix { float m[16]; };
