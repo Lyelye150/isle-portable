@@ -678,6 +678,13 @@ endif()
     # Link SDL and iniparser
     target_link_libraries(isleVR PRIVATE SDL3::SDL3 Isle::iniparser)
 
+    # fixs an error during the building process (ugh i gotta found a better way to fix some of these errors :/)
+    target_include_directories(isleVR
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/miniwin/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/miniwin/src/internal
+    )
+
     # Allow unconditional include of miniwin/miniwindevice.h
     target_link_libraries(isleVR PRIVATE miniwin-headers)
 
