@@ -685,6 +685,9 @@ endif()
         ${CMAKE_CURRENT_SOURCE_DIR}/miniwin/src/internal
     )
 
+    # fixs an error during the building process
+    target_sources(miniwin PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/ISLEVR/VRFixerd3drm.cpp)
+
     # Allow unconditional include of miniwin/miniwindevice.h
     target_link_libraries(isleVR PRIVATE miniwin-headers)
 
