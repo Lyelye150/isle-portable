@@ -130,11 +130,6 @@ target_include_directories(miniwin PUBLIC
     ${CMAKE_SOURCE_DIR}/ISLEVR
 )
 
-target_sources(miniwin
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/ISLEVR/VRFixerd3drm.cpp
-)
-
 target_include_directories(miniwin PUBLIC
     ${CMAKE_SOURCE_DIR}/3rdparty/openxr_loader_WIN/include
 )
