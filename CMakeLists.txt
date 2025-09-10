@@ -914,7 +914,7 @@ else()
 endif()
 if(WIIU)
   # makes and links isle.rpx and lego1.rpl (Tiramisu/Legacy environment ONLY)
-  wut_add_exports(lego1 exports.def)
+  wut_add_exports(lego1 "${CMAKE_SOURCE_DIR}/LEGO1/exports.def")
   wut_create_rpl(lego1)
 
   wut_link_rpl(isle lego1)
