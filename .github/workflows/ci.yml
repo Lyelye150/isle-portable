@@ -46,6 +46,7 @@ jobs:
           - { name: 'iOS',                 os: 'macos-15',       generator: 'Xcode',                 dx5: false, config: false, brew: true,  werror: true,   clang-tidy: false,  cmake-args: '-DCMAKE_SYSTEM_NAME=iOS', ios: true }
           - { name: 'Emscripten',          os: 'ubuntu-latest',  generator: 'Ninja',                 dx5: false, config: false, emsdk: true, werror: true,   clang-tidy: false,  cmake-wrapper: 'emcmake' }
           - { name: 'Nintendo 3DS',        os: 'ubuntu-latest',  generator: 'Ninja',                 dx5: false, config: false, n3ds: true,  werror: true,   clang-tidy: false,  container: 'devkitpro/devkitarm:latest', cmake-args: '-DCMAKE_TOOLCHAIN_FILE=/opt/devkitpro/cmake/3DS.cmake' }
+          - { name: 'Nintendo Wii U',        os: 'ubuntu-latest',  generator: 'Ninja',                 dx5: false, config: false, wiiu: true,  werror: false,   clang-tidy: false,  container: 'devkitpro/devkitppc:latest', cmake-args: '-DCMAKE_TOOLCHAIN_FILE=/opt/devkitpro/cmake/WiiU.cmake' }
           - { name: 'Xbox One',            os: 'windows-latest', generator: 'Visual Studio 17 2022', dx5: false, config: false, msvc: true,  werror: false,  clang-tidy: false,  vc-arch: 'amd64', cmake-args: '-DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION=10.0.26100.0', xbox-one: true}
           - { name: 'Android',             os: 'ubuntu-latest',  generator: 'Ninja',                 dx5: false, config: false, android: true, werror: true, clang-tidy: false,}
     steps:
@@ -220,6 +221,14 @@ jobs:
           mv *.3dsx dist/
           mv *.cia dist/
 
+      - name: Package (Wii U)
+        if: ${{ matrix.wiiu }}
+        run: |
+          cd build
+          mkdir dist
+          mv *.rpx dist/
+          mv *.rpl dist/
+
       - name: Package (Android)
         if: ${{ matrix.android }}
         run: |
@@ -240,6 +249,9 @@ jobs:
             build/dist/*.3dsx
             build/dist/*.cia
             build/dist/*.apk
+            build/dist/*.rpx
+            build/dist/*.rpl
+            build/dist/**
 
   flatpak:
     name: "Flatpak (${{ matrix.arch }})"

@@ -55,14 +55,23 @@ cmake_dependent_option(ISLE_COMPILE_SHADERS "Compile shaders" ON "SDL_SHADERCROS
 option(CMAKE_POSITION_INDEPENDENT_CODE "Build with -fPIC" ON)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy")
 option(DOWNLOAD_DEPENDENCIES "Download dependencies" ON)
+option(USE_SDL2 "Use SDL2 instead of SDL3 via a shim" OFF "WIIU" ON)
+option(BUILD_WUHB "Build isle.wuhb and isle.rpx and lego1.rpl (WIIU ONLY)" OFF "WIIU" OFF) # OFF FOR NOW
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}" CACHE PATH "Directory where to put executables and dll")
 set(ISLE_EMSCRIPTEN_HOST "" CACHE STRING "Host URL for Emscripten streaming (e.g., https://test.com)")
 cmake_dependent_option(BUILD_SHARED_LIBS "Build lego1 as a shared library" ON "NOT EMSCRIPTEN" OFF)
+
+if(USE_SDL2)
+  add_compile_definitions(SDL_MAJOR_VERSION=2)
+else()
+  add_compile_definitions(SDL_MAJOR_VERSION=3)
+endif()
 
 message(STATUS "Isle app:               ${ISLE_BUILD_APP}")
 message(STATUS "Config app:             ${ISLE_BUILD_CONFIG}")
 message(STATUS "Internal DirectX5 SDK:  ${ISLE_USE_DX5}")
 message(STATUS "Internal miniwin:       ${ISLE_MINIWIN}")
+message(STATUS "USE SDL2:               ${USE_SDL2}")
 message(STATUS "Isle extensions:        ${ISLE_EXTENSIONS}")
 message(STATUS "Isle debugging:         ${ISLE_DEBUG}")
 message(STATUS "Compile shaders:        ${ISLE_COMPILE_SHADERS}")
@@ -74,6 +83,7 @@ if (DOWNLOAD_DEPENDENCIES)
   message(STATUS "Fetching SDL3 and iniparser. This might take a while...")
   include(FetchContent)
 
+  if(NOT USE_SDL2)
   if(ANDROID)
     # Built by Gradle
     find_package(SDL3 REQUIRED CONFIG COMPONENTS Shared)
@@ -94,6 +104,7 @@ if (DOWNLOAD_DEPENDENCIES)
       )
     endif()
     FetchContent_MakeAvailable(SDL3)
+  endif()
   endif()
 
   FetchContent_Declare(
@@ -598,6 +609,11 @@ if (ISLE_BUILD_APP)
             ISLE/android/config.cpp
     )
   endif()
+  if(WIIU)
+    target_sources(isle PRIVATE
+      ISLE/wiiu/config.cpp
+    )
+  endif()
   if(Python3_FOUND)
     if(NOT DEFINED PYTHON_PIL_AVAILABLE)
       execute_process(
@@ -891,6 +907,32 @@ elseif(APPLE AND NOT IOS)
   set(CPACK_GENERATOR DragNDrop)
 else()
   set(CPACK_GENERATOR TGZ)
+endif()
+if(WIIU)
+  # makes and links isle.rpx and lego1.rpl (Tiramisu/Legacy environment ONLY)
+  wut_add_exports(lego1 exports.def)
+  wut_create_rpl(lego1)
+
+  wut_link_rpl(isle lego1)
+  wut_create_rpx(isle)
+
+  install(FILES "$<TARGET_FILE_DIR:isle>/isle.rpx" DESTINATION "${CMAKE_INSTALL_PREFIX}/code")
+  install(FILES "$<TARGET_FILE_DIR:lego1>/lego1.rpl" DESTINATION "${CMAKE_INSTALL_PREFIX}/code")
+  if(BUILD_WUHB)
+    # makes isle.wuhb (Amroma environment ONLY)
+    wut_create_wuhb(isle
+    TARGET isle
+    ICON "icon.tga"
+    TITLE "Lego Island"
+    AUTHOR "Lyelye"
+    )
+
+    install(FILES "$<TARGET_FILE_DIR:isle>/isle.wuhb" DESTINATION "${CMAKE_INSTALL_PREFIX}/code")
+  endif()
+
+  # puts content and meta into dist/ mainly for github actions
+  install(DIRECTORY "${CMAKE_SOURCE_DIR}/packaging/wiiu/content/" DESTINATION "content")
+  install(DIRECTORY "${CMAKE_SOURCE_DIR}/packaging/wiiu/meta/" DESTINATION "meta")
 endif()
 
 include(CPack)
