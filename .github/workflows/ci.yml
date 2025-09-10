@@ -99,7 +99,7 @@ jobs:
           brew install cmake ninja llvm qt6
           echo "LLVM_ROOT=$(brew --prefix llvm)/bin" >> $GITHUB_ENV
 
-        - name: Install Wii U dependencies
+      - name: Install Wii U dependencies
         if: ${{ matrix.wiiu }}
         run: |
           sudo dkp-pacman -Syu --noconfirm
