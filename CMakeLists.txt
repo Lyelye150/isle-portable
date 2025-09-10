@@ -80,8 +80,8 @@ add_library(Isle::iniparser INTERFACE IMPORTED)
 
 if(WIIU)
   set(SDL_DISABLE_THREADS OFF CACHE BOOL "Enable threads")
-  include_directories(/opt/devkitpro/wut/include)
-  link_directories(/opt/devkitpro/wut/lib) # mainly used for github actions (have not tested the re-worked on my windows laptop)
+  include_directories(/opt/devkitpro/portlibs/wiiu/include/SDL2)
+  link_directories(/opt/devkitpro/portlibs/wiiu/lib) # mainly used for github actions (have not tested the re-worked on my windows laptop)
 endif()
 
 if (DOWNLOAD_DEPENDENCIES)
