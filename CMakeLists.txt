@@ -56,7 +56,7 @@ option(CMAKE_POSITION_INDEPENDENT_CODE "Build with -fPIC" ON)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy")
 option(DOWNLOAD_DEPENDENCIES "Download dependencies" ON)
 option(USE_SDL2 "Use SDL2 instead of SDL3 via a shim" ON)
-option(BUILD_WUHB "Build isle.wuhb and isle.rpx and lego1.rpl (WIIU ONLY)" ON) # OFF FOR NOW
+option(BUILD_WUHB "Build isle.wuhb and isle.rpx and lego1.rpl (WIIU ONLY)" OFF) # OFF FOR NOW
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}" CACHE PATH "Directory where to put executables and dll")
 set(ISLE_EMSCRIPTEN_HOST "" CACHE STRING "Host URL for Emscripten streaming (e.g., https://test.com)")
 cmake_dependent_option(BUILD_SHARED_LIBS "Build lego1 as a shared library" ON "NOT EMSCRIPTEN" OFF)
@@ -924,7 +924,7 @@ if(WIIU)
   install(FILES "$<TARGET_FILE_DIR:lego1>/lego1.rpl" DESTINATION "${CMAKE_INSTALL_PREFIX}/code")
   if(BUILD_WUHB)
     # makes isle.wuhb (Amroma environment ONLY)
-    wut_create_wuhb(isle
+    wut_create_wuhb(isle_ar
     TARGET isle
     ICON "icon.tga"
     TITLE "Lego Island"
