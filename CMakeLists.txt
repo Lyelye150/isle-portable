@@ -79,7 +79,6 @@ message(STATUS "Compile shaders:        ${ISLE_COMPILE_SHADERS}")
 add_library(Isle::iniparser INTERFACE IMPORTED)
 
 if(WIIU)
-  find_package(Threads REQUIRED)
   set(SDL_DISABLE_THREADS OFF CACHE BOOL "Enable threads")
 endif()
 
