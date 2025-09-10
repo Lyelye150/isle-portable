@@ -55,8 +55,8 @@ cmake_dependent_option(ISLE_COMPILE_SHADERS "Compile shaders" ON "SDL_SHADERCROS
 option(CMAKE_POSITION_INDEPENDENT_CODE "Build with -fPIC" ON)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy")
 option(DOWNLOAD_DEPENDENCIES "Download dependencies" ON)
-option(USE_SDL2 "Use SDL2 instead of SDL3 via a shim" OFF "WIIU" ON)
-option(BUILD_WUHB "Build isle.wuhb and isle.rpx and lego1.rpl (WIIU ONLY)" OFF "WIIU" OFF) # OFF FOR NOW
+option(USE_SDL2 "Use SDL2 instead of SDL3 via a shim" ON)
+option(BUILD_WUHB "Build isle.wuhb and isle.rpx and lego1.rpl (WIIU ONLY)" ON) # OFF FOR NOW
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}" CACHE PATH "Directory where to put executables and dll")
 set(ISLE_EMSCRIPTEN_HOST "" CACHE STRING "Host URL for Emscripten streaming (e.g., https://test.com)")
 cmake_dependent_option(BUILD_SHARED_LIBS "Build lego1 as a shared library" ON "NOT EMSCRIPTEN" OFF)
@@ -77,6 +77,11 @@ message(STATUS "Isle debugging:         ${ISLE_DEBUG}")
 message(STATUS "Compile shaders:        ${ISLE_COMPILE_SHADERS}")
 
 add_library(Isle::iniparser INTERFACE IMPORTED)
+
+if(WIIU)
+  find_package(Threads REQUIRED)
+  set(SDL_DISABLE_THREADS OFF CACHE BOOL "Enable threads")
+endif()
 
 if (DOWNLOAD_DEPENDENCIES)
   # FetchContent downloads and configures dependencies
