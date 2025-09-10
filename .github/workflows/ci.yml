@@ -98,6 +98,12 @@ jobs:
           brew uninstall cmake || true
           brew install cmake ninja llvm qt6
           echo "LLVM_ROOT=$(brew --prefix llvm)/bin" >> $GITHUB_ENV
+
+        - name: Install Wii U dependencies
+        if: ${{ matrix.wiiu }}
+        run: |
+          sudo dkp-pacman -Syu --noconfirm
+          sudo dkp-pacman -S --noconfirm wut-sdl2
       
       - name: Use latest Xcode
         if: ${{ matrix.ios }}
