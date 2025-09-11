@@ -2,6 +2,17 @@ cmake_minimum_required(VERSION 3.25...4.0 FATAL_ERROR)
 
 project(isle LANGUAGES CXX C VERSION 0.1)
 
+if(WIIU)
+  add_library(SDL2_WiiU STATIC IMPORTED)
+  set_target_properties(SDL2_WiiU PROPERTIES
+    IMPORTED_LOCATION /opt/devkitpro/portlibs/wiiu/lib/libSDL2.a
+    INTERFACE_INCLUDE_DIRECTORIES /opt/devkitpro/portlibs/wiiu/include
+  )
+
+  include_directories(BEFORE /opt/devkitpro/portlibs/wiiu/include)
+endif()
+
+
 if (IOS)
   set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED NO)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0")
