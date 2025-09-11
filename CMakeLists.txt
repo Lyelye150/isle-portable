@@ -79,9 +79,11 @@ message(STATUS "Compile shaders:        ${ISLE_COMPILE_SHADERS}")
 add_library(Isle::iniparser INTERFACE IMPORTED)
 
 if(WIIU)
-  set(SDL_DISABLE_THREADS OFF CACHE BOOL "Enable threads")
-  include_directories(BEFORE /opt/devkitpro/portlibs/wiiu/include)
-  target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE /opt/devkitpro/portlibs/wiiu/lib/libSDL2.a)
+  add_library(SDL2_WiiU STATIC IMPORTED)
+  set_target_properties(SDL2_WiiU PROPERTIES
+    IMPORTED_LOCATION /opt/devkitpro/portlibs/wiiu/lib/libSDL2.a
+    INTERFACE_INCLUDE_DIRECTORIES /opt/devkitpro/portlibs/wiiu/include
+  )
 endif()
 
 if (DOWNLOAD_DEPENDENCIES)
@@ -619,6 +621,7 @@ if (ISLE_BUILD_APP)
     target_sources(isle PRIVATE
       ISLE/wiiu/config.cpp
     )
+    target_link_libraries(isle PRIVATE SDL2_WIIU) # added to fixed an error with github actions
   endif()
   if(Python3_FOUND)
     if(NOT DEFINED PYTHON_PIL_AVAILABLE)
