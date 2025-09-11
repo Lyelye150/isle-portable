@@ -36,11 +36,7 @@
 #include "lego/legoomni/include/actions/racecar_actions.h"
 #include "lego/legoomni/include/actions/regbook_actions.h"
 #include "lego/legoomni/include/actions/sndanim_actions.h"
-
-#ifndef WIIU
 #include "lego/LEGO1/mxstl/stlcompat.h"
-#endif
-
 #include "lego/legoomni/include/ambulance.h"
 #include "lego/legoomni/include/bike.h"
 #include "lego/legoomni/include/buildingentity.h"

@@ -528,10 +528,6 @@ if (ISLE_EXTENSIONS)
   )
 endif()
 
-if(WIIU)
-target_compile_definitions(lego1 PRIVATE WIIU)
-endif()
-
 if (ISLE_BUILD_APP)
 
   if (ANDROID)
