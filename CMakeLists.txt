@@ -10,6 +10,8 @@ if(WIIU)
   )
 
   include_directories(BEFORE /opt/devkitpro/portlibs/wiiu/include)
+
+  set_target_properties(lego1 PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "")
 endif()
 
 
