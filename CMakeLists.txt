@@ -10,8 +10,6 @@ if(WIIU)
   )
 
   include_directories(BEFORE /opt/devkitpro/portlibs/wiiu/include)
-
-  set_target_properties(lego1 PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "")
 endif()
 
 
@@ -528,6 +526,10 @@ if (ISLE_EXTENSIONS)
     extensions/src/siloader.cpp
     extensions/src/textureloader.cpp
   )
+endif()
+
+if(WIIU)
+  set_target_properties(lego1 PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "")
 endif()
 
 if (ISLE_BUILD_APP)
