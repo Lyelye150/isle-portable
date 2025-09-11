@@ -529,7 +529,7 @@ if (ISLE_EXTENSIONS)
 endif()
 
 if(WIIU)
-  set_target_properties(lego1 PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "")
+target_compile_definitions(lego1 PRIVATE WIIU)
 endif()
 
 if (ISLE_BUILD_APP)
