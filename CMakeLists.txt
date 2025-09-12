@@ -9,7 +9,10 @@ if(WIIU)
     INTERFACE_INCLUDE_DIRECTORIES /opt/devkitpro/portlibs/wiiu/include
   )
 
-  include_directories(BEFORE /opt/devkitpro/portlibs/wiiu/include)
+  include_directories(BEFORE
+    /opt/devkitpro/portlibs/wiiu/include
+    /opt/devkitpro/devkitPPC/powerpc-eabi/include
+  )
 endif()
 
 

@@ -3,7 +3,7 @@
 
 #include "compat.h"
 
-#if defined(_MSC_VER) && _MSC_VER <= MSVC420_VERSION || defined(__WIIU__)
+#if defined(_MSC_VER) && _MSC_VER <= MSVC420_VERSION
 // Disable "nonstandard extension used : 'bool'" warning spam
 #pragma warning(disable : 4237)
 #include "mxstl.h"
