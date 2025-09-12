@@ -228,6 +228,9 @@ jobs:
           mkdir dist
           mv *.rpx dist/
           mv *.rpl dist/
+          cd ../isle-portable/packaging/wiiu/
+          mv content ../../build/dist/
+          mv meta ../../build/dist/
 
       - name: Package (Android)
         if: ${{ matrix.android }}

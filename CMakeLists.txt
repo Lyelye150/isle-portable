@@ -12,12 +12,12 @@ if(WIIU)
   add_library(libstdc_WiiU STATIC IMPORTED)
   set_target_properties(libstdc_WiiU PROPERTIES
     IMPORTED_LOCATION /opt/devkitpro/devkitPPC/powerpc-eabi/lib/libstdc++.a
-    INTERFACE_INCLUDE_DIRECTORIES /opt/devkitpro/devkitPPC/powerpc-eabi/include
+    INTERFACE_INCLUDE_DIRECTORIES /opt/devkitpro/devkitPPC/powerpc-eabi/include/c++/15.1.0
   )
 
   include_directories(BEFORE
     /opt/devkitpro/portlibs/wiiu/include
-    /opt/devkitpro/devkitPPC/powerpc-eabi/include
+    /opt/devkitpro/devkitPPC/powerpc-eabi/include/c++/15.1.0
   )
 endif()
 
@@ -940,7 +940,7 @@ if(WIIU)
   install(FILES "$<TARGET_FILE_DIR:lego1>/lego1.rpl" DESTINATION "${CMAKE_INSTALL_PREFIX}/code")
   if(BUILD_WUHB)
     # makes isle.wuhb (Amroma environment ONLY)
-    wut_create_wuhb(isle_ar
+    wut_create_wuhb(isle_amr
     TARGET isle
     ICON "icon.tga"
     TITLE "Lego Island"
@@ -949,10 +949,6 @@ if(WIIU)
 
     install(FILES "$<TARGET_FILE_DIR:isle>/isle.wuhb" DESTINATION "${CMAKE_INSTALL_PREFIX}/code")
   endif()
-
-  # puts content and meta into dist/ mainly for github actions
-  install(DIRECTORY "${CMAKE_SOURCE_DIR}/packaging/wiiu/content/" DESTINATION "content")
-  install(DIRECTORY "${CMAKE_SOURCE_DIR}/packaging/wiiu/meta/" DESTINATION "meta")
 endif()
 
 include(CPack)
