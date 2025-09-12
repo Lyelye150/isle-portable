@@ -9,6 +9,12 @@ if(WIIU)
     INTERFACE_INCLUDE_DIRECTORIES /opt/devkitpro/portlibs/wiiu/include
   )
 
+  add_library(libstdc_WiiU STATIC IMPORTED)
+  set_target_properties(libstdc_WiiU PROPERTIES
+    IMPORTED_LOCATION /opt/devkitpro/devkitPPC/powerpc-eabi/lib/libstdc++.a
+    INTERFACE_INCLUDE_DIRECTORIES /opt/devkitpro/devkitPPC/powerpc-eabi/include
+  )
+
   include_directories(BEFORE
     /opt/devkitpro/portlibs/wiiu/include
     /opt/devkitpro/devkitPPC/powerpc-eabi/include
