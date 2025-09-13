@@ -167,12 +167,19 @@ jobs:
             -DISLE_DEBUG=${{ matrix.debug || 'OFF' }} \
             -Werror=dev
 
+      - name: Build (Wii U)
+        if: ${{ matrix.wiiu }}
+        run: |
+          export AR=/opt/devkitpro/devkitPPC/bin/powerpc-eabi-ar
+          export RANLIB=/opt/devkitpro/devkitPPC/bin/powerpc-eabi-ranlib
+          cmake --build build --verbose --config Release
+
       - name: Build (CMake)
-        if: ${{ !matrix.android }}
+        if: ${{ !matrix.android && !matrix.wiiu }}
         run: cmake --build build --verbose --config Release
 
       - name: Package (CPack)
-        if: ${{ !matrix.n3ds && !matrix.android }}
+        if: ${{ !matrix.n3ds && !matrix.android && !matrix.wiiu }}
         run: |
           cd build
           success=0
