@@ -210,14 +210,7 @@ target_include_directories(Vec::Vec INTERFACE "${CMAKE_SOURCE_DIR}/3rdparty/vec"
 add_library(lego1
   LEGO1/main.cpp
 )
-if(WIIU)
-set_source_files_properties(
-    LEGO1/lego1_pch.h
-    PROPERTIES
-    LANGUAGE CXX
-)
-target_precompile_headers(lego1 PRIVATE "LEGO1/lego1_pch.h")
-else()
+if(NOT WIIU)
 target_precompile_headers(lego1 PRIVATE "LEGO1/lego1_pch.h")
 endif()
 set_property(TARGET lego1 PROPERTY DEFINE_SYMBOL "LEGO1_DLL")
