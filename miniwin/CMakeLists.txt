@@ -32,7 +32,7 @@ if(NOT USE_SDL2)
   list(APPEND GRAPHICS_BACKENDS USE_SDL_GPU)
 endif()
 
-if(NOT WINDOWS_STORE)
+if(NOT WINDOWS_STORE AND NOT WIIU)
   find_package(OpenGL)
     if(OpenGL_FOUND)
       message(STATUS "Found OpenGL: enabling OpenGL 1.x renderer")
