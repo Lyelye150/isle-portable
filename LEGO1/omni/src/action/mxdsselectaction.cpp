@@ -114,14 +114,14 @@ void MxDSSelectAction::Deserialize(MxU8*& p_source, MxS16 p_flags)
 		char buffer[10];
 		MxS16 value = atoi(&m_unk0x9c.GetData()[strlen("RANDOM_")]);
 
-		#ifdef __WIIU__
+#ifdef __WIIU__
 			static std::mt19937 rng{std::random_device{}()};
 			std::uniform_int_distribution<MxS32> dist(0, value);
 			MxS32 random = dist(rng);
-		#else
+#else
 			srand(Timer()->GetTime());
 			MxS32 random = SDL_rand(value);
-		#endif
+#endif
 		string = SDL_itoa((MxS16) random, buffer, 10);
 	}
 
