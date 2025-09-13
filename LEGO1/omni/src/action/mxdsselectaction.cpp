@@ -6,6 +6,7 @@
 #include "mxvariabletable.h"
 
 #include <SDL3/SDL_stdinc.h>
+#include <random>
 
 DECOMP_SIZE_ASSERT(MxDSSelectAction, 0xb0)
 DECOMP_SIZE_ASSERT(MxStringList, 0x18)
