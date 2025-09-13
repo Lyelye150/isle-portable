@@ -3,6 +3,7 @@
 #include "3dmanager/lego3dmanager.h"
 #include "extensions/siloader.h"
 #include "islepathactor.h"
+#include "legopartpresenter.h"
 #include "legoanimationmanager.h"
 #include "legobuildingmanager.h"
 #include "legocharactermanager.h"
@@ -129,11 +130,7 @@ void LegoOmni::Destroy()
 		m_textureContainer = NULL;
 	}
 
-#ifdef __WIIU__
-	LegoAnimPresenter::Release();
-#else
 	LegoPartPresenter::Release();
-#endif
 
 	if (m_viewLODListManager) {
 		delete m_viewLODListManager;

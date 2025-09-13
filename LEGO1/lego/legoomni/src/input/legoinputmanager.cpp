@@ -13,6 +13,15 @@
 
 #include <SDL3/SDL_log.h>
 
+#ifdef __WIIU__
+	template <class... Ts>
+	struct overloaded : Ts... {
+		using Ts::operator()...;
+	};
+	template <class... Ts>
+	overloaded(Ts...) -> overloaded<Ts...>;
+#endif
+
 DECOMP_SIZE_ASSERT(LegoInputManager, 0x338)
 DECOMP_SIZE_ASSERT(LegoNotifyList, 0x18)
 DECOMP_SIZE_ASSERT(LegoNotifyListCursor, 0x10)
@@ -693,15 +702,6 @@ MxBool LegoInputManager::HandleRumbleEvent(
 		InitializeHaptics();
 		g_hapticsInitialized = true;
 	}
-
-#ifdef __WIIU__
-	template <class... Ts>
-	struct overloaded : Ts... {
-		using Ts::operator()...;
-	};
-	template <class... Ts>
-	overloaded(Ts...) -> overloaded<Ts...>;
-#endif
 
 	SDL_Haptic* haptic = nullptr;
 	std::visit(
