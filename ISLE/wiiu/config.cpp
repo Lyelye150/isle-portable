@@ -1,6 +1,6 @@
 #include "config.h"
 
-#include <SDL2/SDL_log.h>
+#include <SDL3/SDL_log.h>
 #include <iniparser.h>
 
 void WIIU_SetupDefaultConfigOverrides(dictionary* p_dictionary)

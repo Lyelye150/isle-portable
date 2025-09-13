@@ -129,7 +129,11 @@ void LegoOmni::Destroy()
 		m_textureContainer = NULL;
 	}
 
+#ifdef __WIIU__
+	LegoAnimPresenter::Release();
+#else
 	LegoPartPresenter::Release();
+#endif
 
 	if (m_viewLODListManager) {
 		delete m_viewLODListManager;

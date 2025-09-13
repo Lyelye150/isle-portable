@@ -694,29 +694,35 @@ MxBool LegoInputManager::HandleRumbleEvent(
 		g_hapticsInitialized = true;
 	}
 
-	SDL_Haptic* haptic = nullptr;
-	std::visit(
-		overloaded{
-			[](SDL_KeyboardID_v p_id) {},
-			[&haptic, this](SDL_MouseID_v p_id) {
-				if (m_mice.count((SDL_MouseID) p_id)) {
-					haptic = m_mice[(SDL_MouseID) p_id].second;
-				}
-			},
-			[&haptic, this](SDL_JoystickID_v p_id) {
-				if (m_joysticks.count((SDL_JoystickID) p_id)) {
-					haptic = m_joysticks[(SDL_JoystickID) p_id].second;
-				}
-			},
-			[&haptic, this](SDL_TouchID_v p_id) {
-				// We can't currently correlate Touch devices with Haptic devices
-				if (!m_otherHaptics.empty()) {
-					haptic = m_otherHaptics.begin()->second;
-				}
-			}
-		},
-		m_lastInputMethod
-	);
+#ifdef __WIIU__
+template<class... Ts>
+struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+#endif
+
+SDL_Haptic* haptic = nullptr;
+std::visit(
+    overloaded{
+        [](SDL_KeyboardID_v p_id) {},
+        [&haptic, this](SDL_MouseID_v p_id) {
+            if (m_mice.count((SDL_MouseID)p_id)) {
+                haptic = m_mice[(SDL_MouseID)p_id].second;
+            }
+        },
+        [&haptic, this](SDL_JoystickID_v p_id) {
+            if (m_joysticks.count((SDL_JoystickID)p_id)) {
+                haptic = m_joysticks[(SDL_JoystickID)p_id].second;
+            }
+        },
+        [&haptic, this](SDL_TouchID_v p_id) {
+            // We can't currently correlate Touch devices with Haptic devices
+            if (!m_otherHaptics.empty()) {
+                haptic = m_otherHaptics.begin()->second;
+            }
+        }
+    },
+    m_lastInputMethod
+);
 
 	if (haptic) {
 		return SDL_PlayHapticRumble(haptic, p_strength, p_milliseconds);
