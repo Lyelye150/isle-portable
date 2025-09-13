@@ -32,7 +32,11 @@
 #include "scripts.h"
 
 #include <SDL3/SDL_events.h>
+#ifdef __WIIU__
+#include <SDL3/SDL.h>
+#else
 #include <SDL3/SDL_process.h>
+#endif
 #include <SDL3/SDL_stdinc.h>
 #include <stdio.h>
 #include <string.h>
