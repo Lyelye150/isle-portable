@@ -14,12 +14,12 @@
 #include <SDL3/SDL_log.h>
 
 #ifdef __WIIU__
-	template <class... Ts>
-	struct overloaded : Ts... {
-		using Ts::operator()...;
-	};
-	template <class... Ts>
-	overloaded(Ts...) -> overloaded<Ts...>;
+template <class... Ts>
+struct overloaded : Ts... {
+	using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 #endif
 
 DECOMP_SIZE_ASSERT(LegoInputManager, 0x338)
