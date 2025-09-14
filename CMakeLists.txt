@@ -207,7 +207,7 @@ target_link_directories(DirectX5::DirectX5 INTERFACE "${CMAKE_SOURCE_DIR}/3rdpar
 add_library(Vec::Vec INTERFACE IMPORTED)
 target_include_directories(Vec::Vec INTERFACE "${CMAKE_SOURCE_DIR}/3rdparty/vec")
 
-if(WIIU)
+if(WIIU) # elf2rpl does not like .a format
 add_executable(lego1
   LEGO1/main.cpp
 )
@@ -593,7 +593,9 @@ if (ISLE_BUILD_APP)
     target_link_libraries(isle PRIVATE winmm)
   endif()
   # Link LEGO1
+  if(NOT WIIU) # wut_link_rpl will link isle to lego1
   target_link_libraries(isle PRIVATE lego1)
+  endif()
   if(ISLE_DEBUG)
     target_sources(isle PRIVATE
       ISLE/isledebug.cpp
