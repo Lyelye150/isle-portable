@@ -211,7 +211,7 @@ if(WIIU)
 add_executable(lego1
   LEGO1/main.cpp
 )
-else
+else()
 add_library(lego1
   LEGO1/main.cpp
 )
