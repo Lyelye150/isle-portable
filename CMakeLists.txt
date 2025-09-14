@@ -207,9 +207,15 @@ target_link_directories(DirectX5::DirectX5 INTERFACE "${CMAKE_SOURCE_DIR}/3rdpar
 add_library(Vec::Vec INTERFACE IMPORTED)
 target_include_directories(Vec::Vec INTERFACE "${CMAKE_SOURCE_DIR}/3rdparty/vec")
 
+if(WIIU)
+add_executable(lego1
+  LEGO1/main.cpp
+)
+else
 add_library(lego1
   LEGO1/main.cpp
 )
+endif()
 if(NOT WIIU)
 target_precompile_headers(lego1 PRIVATE "LEGO1/lego1_pch.h")
 endif()
