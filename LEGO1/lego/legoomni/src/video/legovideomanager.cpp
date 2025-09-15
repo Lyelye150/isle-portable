@@ -4,11 +4,9 @@
 #include "legoinputmanager.h"
 #include "legomain.h"
 #include "misc.h"
-#ifndef __WIIU__
 #include "mxdirectx/legodxinfo.h"
 #include "mxdirectx/mxdirect3d.h"
 #include "mxdirectx/mxstopwatch.h"
-#endif
 #include "mxdisplaysurface.h"
 #include "mxgeometry/mxmatrix.h"
 #include "mxmisc.h"
