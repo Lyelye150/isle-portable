@@ -153,15 +153,6 @@ jobs:
               -DISLE_DEBUG=${{ matrix.debug || 'OFF' }} \
               -Werror=dev"
 
-      - name: Disable miniaudio atomics (patch)
-        if: ${{ matrix.wiiu }}
-        run: |
-          if [ -f miniaudio/extras/miniaudio_split/miniaudio.h ]; then
-          sed -i '1i#define MA_NO_ATOMIC' miniaudio/extras/miniaudio_split/miniaudio.h
-          fi
-
-          find . -type f -name miniaudio.h -path "*miniaudio*" -exec sed -i '1i#define MA_NO_ATOMIC' {} \; || true
-
       - name: Configure (CMake)
         if: ${{ !matrix.android }}
         run: |
