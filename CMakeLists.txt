@@ -211,6 +211,7 @@ if(WIIU) # elf2rpl does not like .a format
 add_executable(lego1
   LEGO1/main.cpp
 )
+set_target_properties(lego1 PROPERTIES ENABLE_EXPORTS TRUE)
 else()
 add_library(lego1
   LEGO1/main.cpp
@@ -593,11 +594,7 @@ if (ISLE_BUILD_APP)
     target_link_libraries(isle PRIVATE winmm)
   endif()
   # Link LEGO1
-  if(WIIU)
-  wut_link_rpl(isle lego1)
-  else()
   target_link_libraries(isle PRIVATE lego1)
-  endif()
   if(ISLE_DEBUG)
     target_sources(isle PRIVATE
       ISLE/isledebug.cpp
@@ -950,6 +947,7 @@ if(WIIU)
   wut_add_exports(lego1 "${CMAKE_SOURCE_DIR}/LEGO1/exports.def")
   wut_create_rpl(lego1)
 
+  wut_link_rpl(isle lego1)
   wut_create_rpx(isle)
 
   install(FILES "$<TARGET_FILE_DIR:isle>/isle.rpx" DESTINATION "${CMAKE_INSTALL_PREFIX}/code")
