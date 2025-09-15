@@ -29,7 +29,6 @@ target_compile_definitions(miniaudio PUBLIC
     MA_NO_GENERATION
     MA_NO_THREADING
     MA_NO_RUNTIME_LINKING
-    MA_NO_ATOMIC
 )
 
 if(DOWNLOAD_DEPENDENCIES)
