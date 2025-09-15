@@ -230,7 +230,7 @@ target_link_libraries(lego1 PRIVATE SDL3::SDL3)
 target_link_libraries(lego1 PUBLIC SDL3::Headers)
 target_link_libraries(lego1 PRIVATE $<$<BOOL:${ISLE_USE_DX5}>:DirectX5::DirectX5>)
 if(WIIU) # this is the only way to stop miniaudio atomics error when building isle.rpx and lego1.rpx
-  target_sources(lego1 PRIVATE isle-portable-wiiu/3rdparty/atomic-dummy/atomic.c)
+  target_sources(lego1 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/atomic-dummy/atomic.c)
 endif()
 # Allow unconditional include of miniwin/miniwind3d.h
 target_link_libraries(lego1 PRIVATE miniwin-headers)
@@ -595,7 +595,7 @@ if (ISLE_BUILD_APP)
     target_link_libraries(isle PRIVATE winmm)
   endif()
 if(WIIU) # this is the only way to stop miniaudio atomics error when building isle.rpx and lego1.rpx
-  target_sources(isle PRIVATE isle-portable-wiiu/3rdparty/atomic-dummy/atomic.c)
+  target_sources(isle PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/atomic-dummy/atomic.c)
 endif()
   # Link LEGO1
   target_link_libraries(isle PRIVATE lego1)
