@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.25...4.0 FATAL_ERROR)
 project(isle LANGUAGES CXX C VERSION 0.1)
 
 if(WIIU)
-  set(CMAKE_CXX_COMPILER "/opt/devkitpro/devkitPPC/bin/powerpc-eabi-g++")
-
   add_library(SDL2_WiiU STATIC IMPORTED)
   set_target_properties(SDL2_WiiU PROPERTIES
     IMPORTED_LOCATION /opt/devkitpro/portlibs/wiiu/lib/libSDL2.a
