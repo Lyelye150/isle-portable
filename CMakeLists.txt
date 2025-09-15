@@ -594,9 +594,7 @@ if (ISLE_BUILD_APP)
   endif()
   # Link LEGO1
   if(WIIU)
-  target_include_directories(isle PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/LEGO1
-  )
+  wut_link_rpl(isle lego1)
   else()
   target_link_libraries(isle PRIVATE lego1)
   endif()
@@ -952,7 +950,6 @@ if(WIIU)
   wut_add_exports(lego1 "${CMAKE_SOURCE_DIR}/LEGO1/exports.def")
   wut_create_rpl(lego1)
 
-  wut_link_rpl(isle lego1)
   wut_create_rpx(isle)
 
   install(FILES "$<TARGET_FILE_DIR:isle>/isle.rpx" DESTINATION "${CMAKE_INSTALL_PREFIX}/code")
