@@ -5,9 +5,13 @@
 #endif
 
 #ifdef __WIIU__
+#include "mainUclass.h"
+#endif
+
+#ifdef __WIIU__
 extern "C" void rpl_entry(void)
 {
-	LegoApp app;
+	Lego1App app;
 	app.Run();
 }
 #endif
