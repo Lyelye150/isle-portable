@@ -593,7 +593,11 @@ if (ISLE_BUILD_APP)
     target_link_libraries(isle PRIVATE winmm)
   endif()
   # Link LEGO1
-  if(NOT WIIU) # wut_link_rpl will link isle to lego1
+  if(WIIU)
+  target_include_directories(isle PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/LEGO1
+  )
+  else()
   target_link_libraries(isle PRIVATE lego1)
   endif()
   if(ISLE_DEBUG)
