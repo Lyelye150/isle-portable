@@ -153,24 +153,17 @@ jobs:
               -DISLE_DEBUG=${{ matrix.debug || 'OFF' }} \
               -Werror=dev"
 
-      - name: Configure (WIIU)
+      - name: Disable miniaudio atomics (patch)
         if: ${{ matrix.wiiu }}
         run: |
-          ${{ matrix.cmake-wrapper || '' }} cmake -S . -B build -G "${{ matrix.generator }}" \
-            ${{ matrix.cmake-args || '' }} \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DISLE_USE_DX5=${{ !!matrix.dx5 }} \
-            -DISLE_BUILD_CONFIG=${{ !!matrix.config }} \
-            -DISLE_BUILD_ASSETS=${{ !!matrix.build-assets }} \
-            -DENABLE_CLANG_TIDY=${{ !!matrix.clang-tidy  }} \
-            -DISLE_WERROR=${{ !!matrix.werror }} \
-            -DISLE_DEBUG=${{ matrix.debug || 'OFF' }} \
-            -Werror=dev \
-            -DCMAKE_C_FLAGS="-DMA_ENABLE_ONLY_SPECIFIC_BACKENDS -DMA_NO_DECODING -DMA_NO_ENCODING -DMA_NO_WAV -DMA_NO_FLAC -DMA_NO_MP3 -DMA_NO_DEVICE_IO -DMA_NO_RESOURCE_MANAGER -DMA_NO_GENERATION -DMA_NO_THREADING -DMA_NO_RUNTIME_LINKING -mcpu=750 -meabi -mhard-float -ffunction-sections -fdata-sections -DESPRESSO -D__WIIU__ -D__WUT__ -g -O2 -DNDEBUG -std=c++17 -DMA_NO_ATOMIC" \
-            -DCMAKE_CXX_FLAGS="-DMA_ENABLE_ONLY_SPECIFIC_BACKENDS -DMA_NO_DECODING -DMA_NO_ENCODING -DMA_NO_WAV -DMA_NO_FLAC -DMA_NO_MP3 -DMA_NO_DEVICE_IO -DMA_NO_RESOURCE_MANAGER -DMA_NO_GENERATION -DMA_NO_THREADING -DMA_NO_RUNTIME_LINKING -mcpu=750 -meabi -mhard-float -ffunction-sections -fdata-sections -DESPRESSO -D__WIIU__ -D__WUT__ -g -O2 -DNDEBUG -std=c++17 -DMA_NO_ATOMIC"
+          if [ -f miniaudio/extras/miniaudio_split/miniaudio.h ]; then
+          sed -i '1i#define MA_NO_ATOMIC' miniaudio/extras/miniaudio_split/miniaudio.h
+          fi
+
+          find . -type f -name miniaudio.h -path "*miniaudio*" -exec sed -i '1i#define MA_NO_ATOMIC' {} \; || true
 
       - name: Configure (CMake)
-        if: ${{ !matrix.android && !matrix.wiiu }}
+        if: ${{ !matrix.android }}
         run: |
           ${{ matrix.cmake-wrapper || '' }} cmake -S . -B build -G "${{ matrix.generator }}" \
             ${{ matrix.cmake-args || '' }} \
