@@ -4,9 +4,11 @@
 #include "legoinputmanager.h"
 #include "legomain.h"
 #include "misc.h"
+#ifndef __WIIU__
 #include "mxdirectx/legodxinfo.h"
 #include "mxdirectx/mxdirect3d.h"
 #include "mxdirectx/mxstopwatch.h"
+#endif
 #include "mxdisplaysurface.h"
 #include "mxgeometry/mxmatrix.h"
 #include "mxmisc.h"
@@ -104,6 +106,7 @@ MxResult LegoVideoManager::Create(MxVideoParam& p_videoParam, MxU32 p_frequencyM
 	PALETTEENTRY paletteEntries[256];
 	p_videoParam.GetPalette()->GetEntries(paletteEntries);
 
+#ifndef __WIIU__
 	if (CreateDirect3D() != SUCCESS) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "::CreateDirect3D failed");
 		goto done;
@@ -128,6 +131,7 @@ MxResult LegoVideoManager::Create(MxVideoParam& p_videoParam, MxU32 p_frequencyM
 		deviceNum = deviceEnumerate.GetBestDevice();
 		deviceNum = deviceEnumerate.GetDevice(deviceNum, driver, device);
 	}
+#endif
 
 	m_direct3d->SetDevice(deviceEnumerate, driver, device);
 

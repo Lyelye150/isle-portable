@@ -65,6 +65,10 @@
 #include "3ds/config.h"
 #endif
 
+#ifdef __WIIU__
+#include "wiiu/config.h"
+#endif
+
 #ifdef WINDOWS_STORE
 #include "xbox_one_series/config.h"
 #endif
@@ -75,6 +79,13 @@
 
 #ifdef ANDROID
 #include "android/config.h"
+#endif
+
+#ifdef __WIIU__
+extern "C" void rpl_entry(void) {
+    IsleApp app;
+    app.Run();
+}
 #endif
 
 DECOMP_SIZE_ASSERT(IsleApp, 0x8c)
