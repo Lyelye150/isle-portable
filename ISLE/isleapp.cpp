@@ -82,9 +82,10 @@
 #endif
 
 #ifdef __WIIU__
-extern "C" void rpl_entry(void) {
-    IsleApp app;
-    app.Run();
+extern "C" void rpl_entry(void)
+{
+	IsleApp app;
+	app.Run();
 }
 #endif
 

@@ -5,9 +5,10 @@
 #endif
 
 #ifdef __WIIU__
-extern "C" void rpl_entry(void) {
-    LegoApp app;
-    app.Run();
+extern "C" void rpl_entry(void)
+{
+	LegoApp app;
+	app.Run();
 }
 #endif
 
