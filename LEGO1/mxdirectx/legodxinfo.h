@@ -7,6 +7,7 @@
 // VTABLE: LEGO1 0x100d9cc8
 // VTABLE: BETA10 0x101befb4
 // SIZE 0x14
+#ifndef __WIIU__
 class LegoDeviceEnumerate : public MxDeviceEnumerate {
 public:
 	int ParseDeviceName(const char* p_deviceId);
@@ -26,4 +27,5 @@ public:
 	// LegoDeviceEnumerate::~LegoDeviceEnumerate
 };
 
+#endif
 #endif // LEGODXINFO_H

@@ -129,9 +129,9 @@ MxResult LegoVideoManager::Create(MxVideoParam& p_videoParam, MxU32 p_frequencyM
 		deviceNum = deviceEnumerate.GetBestDevice();
 		deviceNum = deviceEnumerate.GetDevice(deviceNum, driver, device);
 	}
-#endif
 
 	m_direct3d->SetDevice(deviceEnumerate, driver, device);
+#endif
 
 	if (driver->m_ddCaps.dwCaps2 != DDCAPS2_CERTIFIED && driver->m_ddCaps.dwSVBRops[7] != 2) {
 		p_videoParam.Flags().SetLacksLightSupport(TRUE);
@@ -314,7 +314,9 @@ MxResult LegoVideoManager::Tickle()
 	m_stopWatch->Reset();
 	m_stopWatch->Start();
 
+#ifndef __WIIU__
 	m_direct3d->RestoreSurfaces();
+#endif
 
 	SortPresenterList();
 
