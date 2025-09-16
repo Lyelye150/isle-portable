@@ -100,6 +100,7 @@ if(WIIU)
   else()
     message(STATUS "🧩 GX2 support not enabled")
   endif()
+endif()
 
 if(WIN32 AND NOT WINDOWS_STORE)
   target_sources(miniwin PRIVATE
