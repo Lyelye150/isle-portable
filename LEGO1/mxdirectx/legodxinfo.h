@@ -4,6 +4,13 @@
 #include "mxdirectxinfo.h"
 
 #ifdef __WIIU__
+class MxDeviceEnumerate {
+public:
+    MxDeviceEnumerate() {}
+    virtual ~MxDeviceEnumerate() {}
+    virtual int DoEnumerate(void* hwnd) { return 0; }
+};
+
 class LegoDeviceEnumerate : public MxDeviceEnumerate {
 public:
 	int ParseDeviceName(const char* p_deviceId) { return -1; }
@@ -17,6 +24,9 @@ public:
 	int GetBestDevice() { return 0; }
 	int FUN_1009d210() { return 0; }
 	unsigned char FUN_1009d3d0(Direct3DDeviceInfo& p_device) { return 0; }
+
+	LegoDeviceEnumerate() {}
+	~LegoDeviceEnumerate() {}
 };
 #else
 class LegoDeviceEnumerate : public MxDeviceEnumerate {
