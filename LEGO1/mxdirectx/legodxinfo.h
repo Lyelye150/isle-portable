@@ -17,9 +17,6 @@ public:
 	int GetBestDevice() { return 0; }
 	int FUN_1009d210() { return 0; }
 	unsigned char FUN_1009d3d0(Direct3DDeviceInfo& p_device) { return 0; }
-
-	LegoDeviceEnumerate() {}
-	~LegoDeviceEnumerate() {}
 };
 #else
 class LegoDeviceEnumerate : public MxDeviceEnumerate {
