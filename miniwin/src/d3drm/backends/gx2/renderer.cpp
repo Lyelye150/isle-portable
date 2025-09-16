@@ -5,9 +5,9 @@
 #include "meshutils.h"
 #include "miniwin.h"
 
+#include <algorithm>
 #include <vector>
 #include <cstring>
-#include <algorithm>
 
 static bool g_rendering = false;
 
