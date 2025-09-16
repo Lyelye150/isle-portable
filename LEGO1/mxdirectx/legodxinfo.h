@@ -6,9 +6,9 @@
 #ifdef __WIIU__
 class MxDeviceEnumerate {
 public:
-    MxDeviceEnumerate() {}
-    virtual ~MxDeviceEnumerate() {}
-    virtual int DoEnumerate(void* hwnd) { return 0; }
+	MxDeviceEnumerate() {}
+	virtual ~MxDeviceEnumerate() {}
+	virtual int DoEnumerate(void* hwnd) { return 0; }
 };
 
 class LegoDeviceEnumerate : public MxDeviceEnumerate {
