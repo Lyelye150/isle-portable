@@ -90,6 +90,17 @@ if(NINTENDO_3DS)
   endif()
 endif()
 
+if(WIIU)
+  find_library(GX2_LIBRARY NAMES gx2)
+  if(GX2_LIBRARY)
+    message(STATUS "Found GX2")
+    target_sources(miniwin PRIVATE src/d3drm/backends/gx2/renderer.cpp)
+    target_link_libraries(miniwin PRIVATE ${GX2_LIBRARY} wiiu_shaders)
+    list(APPEND GRAPHICS_BACKENDS USE_GX2)
+  else()
+    message(STATUS "🧩 GX2 support not enabled")
+  endif()
+
 if(WIN32 AND NOT WINDOWS_STORE)
   target_sources(miniwin PRIVATE
     src/d3drm/backends/directx9/actual.cpp
