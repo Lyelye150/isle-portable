@@ -6,8 +6,8 @@
 #include "miniwin.h"
 
 #include <algorithm>
-#include <vector>
 #include <cstring>
+#include <vector>
 
 static bool g_rendering = false;
 
