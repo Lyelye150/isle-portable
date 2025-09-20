@@ -7,6 +7,9 @@
 
 #include <algorithm>
 #include <cstring>
+#include <gx2.h>
+#include <gx2/shaders.h>
+#include <gx2/surface.h>
 #include <vector>
 
 static bool g_rendering = false;
