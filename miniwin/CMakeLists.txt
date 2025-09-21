@@ -91,7 +91,7 @@ if(NINTENDO_3DS)
 endif()
 
 if(WIIU)
-  message(STATUS "Enabling GX2 backend")
+  message(STATUS "Enabling GX2 renderer")
   target_sources(miniwin PRIVATE src/d3drm/backends/gx2/renderer.cpp)
   target_link_libraries(miniwin PRIVATE wut wiiu_shaders)
   list(APPEND GRAPHICS_BACKENDS USE_GX2)
