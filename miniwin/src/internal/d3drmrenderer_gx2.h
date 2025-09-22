@@ -5,6 +5,7 @@
 #include "meshutils.h"
 
 #include <SDL3/SDL.h>
+#include <gx2/context.h>
 #include <gx2/display.h>
 #include <gx2/shaders.h>
 #include <gx2/surface.h>
@@ -25,7 +26,7 @@ struct GX2MeshCacheEntry {
 	int version = 0;
 	D3DRMVERTEX* vbo = nullptr;
 	int vertexCount = 0;
-	GX2VertexBuffer gx2VBO = {};
+	u32* gx2VBO = nullptr;
 };
 
 class GX2Renderer : public Direct3DRMRenderer {
@@ -67,7 +68,8 @@ private:
 
 	D3DRMMATRIX4D m_projection = {};
 	GX2RenderTarget m_renderTarget = {};
-	GX2Shader m_shader = {};
+	GX2VertexShader m_vshader = {};
+	GX2PixelShader m_pshader = {};
 	std::vector<GX2TextureCacheEntry> m_textures;
 	std::vector<GX2MeshCacheEntry> m_meshs;
 	ViewportTransform m_viewportTransform = {};

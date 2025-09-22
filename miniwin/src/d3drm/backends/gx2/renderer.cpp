@@ -1,4 +1,3 @@
-#include "d3drmrenderer.h"
 #include "d3drmrenderer_gx2.h"
 #include "d3drmtexture_impl.h"
 #include "ddraw_impl.h"
@@ -15,7 +14,8 @@ GX2Renderer::GX2Renderer(DWORD width, DWORD height)
 	m_width = width;
 	m_height = height;
 	GX2Init();
-	GX2InitShaderEx(&m_shader, vshader_gx2_bin, vshader_gx2_bin_size);
+	GX2InitShaderEx(&m_vshader, vshader_gx2_bin, vshader_gx2_bin_size);
+	GX2InitShaderEx(&m_pshader, pshader_gx2_bin, pshader_gx2_bin_size);
 	GX2CreateRenderTarget(&m_renderTarget, m_width, m_height, GX2_SURFACE_FORMAT_R8G8B8A8_UNORM);
 }
 
@@ -29,6 +29,7 @@ GX2Renderer::~GX2Renderer()
 	for (auto& mesh : m_meshs) {
 		if (mesh.meshGroup) {
 			delete[] mesh.vbo;
+			GX2RDeleteBuffer(&mesh.gx2VBO);
 		}
 	}
 	GX2DestroyRenderTarget(&m_renderTarget);
@@ -44,9 +45,7 @@ void GX2Renderer::SetProjection(const D3DRMMATRIX4D& projection, D3DVALUE front,
 	memcpy(&m_projection, &projection, sizeof(D3DRMMATRIX4D));
 }
 
-void GX2Renderer::SetFrustumPlanes(const Plane* frustumPlanes)
-{
-}
+void GX2Renderer::SetFrustumPlanes(const Plane* frustumPlanes) {}
 
 struct GX2CacheDestroyContext {
 	GX2Renderer* renderer;
@@ -87,8 +86,7 @@ static bool ConvertAndUploadTexture(GX2Texture* tex, SDL_Surface* surface, bool 
 	if (isUI) {
 		GX2SetTextureFilter(tex, GX2_TEX_FILTER_NEAREST);
 		GX2SetTextureWrap(tex, GX2_TEX_WRAP_CLAMP);
-	}
-	else {
+	} else {
 		GX2SetTextureFilter(tex, GX2_TEX_FILTER_LINEAR);
 		GX2SetTextureWrap(tex, GX2_TEX_WRAP_REPEAT);
 		GX2GenerateMipmaps(tex);
@@ -129,8 +127,8 @@ Uint32 GX2Renderer::GetTextureId(IDirect3DRMTexture* iTexture, bool isUI, float 
 		}
 	}
 	m_textures.push_back(std::move(entry));
-	AddTextureDestroyCallback((Uint32) (m_textures.size() - 1), texture);
-	return (Uint32) (m_textures.size() - 1);
+	AddTextureDestroyCallback((Uint32)(m_textures.size() - 1), texture);
+	return (Uint32)(m_textures.size() - 1);
 }
 
 GX2MeshCacheEntry GX2UploadMesh(const MeshGroup& meshGroup)
@@ -146,7 +144,7 @@ GX2MeshCacheEntry GX2UploadMesh(const MeshGroup& meshGroup)
 	cache.vertexCount = uploadBuffer.size();
 	cache.vbo = new D3DRMVERTEX[cache.vertexCount];
 	memcpy(cache.vbo, uploadBuffer.data(), cache.vertexCount * sizeof(D3DRMVERTEX));
-	GX2CreateVertexBuffer(&cache.gx2VBO, cache.vbo, cache.vertexCount * sizeof(D3DRMVERTEX));
+	GX2RCreateBuffer(&cache.gx2VBO, cache.vbo, cache.vertexCount * sizeof(D3DRMVERTEX), GX2R_BUFFER_BIND_VERTEX_BUFFER);
 	return cache;
 }
 
@@ -160,7 +158,7 @@ void GX2Renderer::AddMeshDestroyCallback(Uint32 id, IDirect3DRMMesh* mesh)
 			if (cacheEntry.meshGroup) {
 				cacheEntry.meshGroup = nullptr;
 				delete[] cacheEntry.vbo;
-				GX2DeleteVertexBuffer(&cacheEntry.gx2VBO);
+				GX2RDeleteBuffer(&cacheEntry.gx2VBO);
 				cacheEntry.vertexCount = 0;
 			}
 			delete ctx;
@@ -189,15 +187,13 @@ Uint32 GX2Renderer::GetMeshId(IDirect3DRMMesh* mesh, const MeshGroup* meshGroup)
 		}
 	}
 	m_meshs.push_back(std::move(newCache));
-	AddMeshDestroyCallback((Uint32) (m_meshs.size() - 1), mesh);
-	return (Uint32) (m_meshs.size() - 1);
+	AddMeshDestroyCallback((Uint32)(m_meshs.size() - 1), mesh);
+	return (Uint32)(m_meshs.size() - 1);
 }
 
 void GX2Renderer::StartFrame()
 {
-	if (g_rendering) {
-		return;
-	}
+	if (g_rendering) return;
 	GX2BeginFrame(&m_renderTarget);
 	g_rendering = true;
 }
@@ -205,15 +201,9 @@ void GX2Renderer::StartFrame()
 void GX2Renderer::UploadLights()
 {
 	for (const auto& light : m_lights) {
-		if (light.positional == 0.0f && light.directional == 0.0f) {
-			GX2SetAmbientLight(light.color);
-		}
-		else if (light.directional == 1.0f) {
-			GX2SetDirectionalLight(light.direction, light.color);
-		}
-		else if (light.positional == 1.0f) {
-			GX2SetPointLight(light.position, light.color);
-		}
+		if (light.positional == 0.0f && light.directional == 0.0f) GX2SetAmbientLight(light.color);
+		else if (light.directional == 1.0f) GX2SetDirectionalLight(light.direction, light.color);
+		else if (light.positional == 1.0f) GX2SetPointLight(light.position, light.color);
 	}
 }
 
@@ -260,14 +250,12 @@ void GX2Renderer::SubmitDraw(
 )
 {
 	auto& mesh = m_meshs[meshId];
-	GX2BindShader(&m_shader);
-	GX2BindVertexBuffer(&mesh.gx2VBO);
+	GX2BindShader(&m_vshader, &m_pshader);
+	GX2BindVertexBuffer(mesh.gx2VBO);
 	GX2SetModelViewMatrix(modelViewMatrix);
 	GX2SetMaterial(appearance.color, appearance.shininess);
 	GX2Texture* tex = (appearance.textureId != NO_TEXTURE_ID) ? &m_textures[appearance.textureId].gx2Tex : nullptr;
-	if (tex) {
-		GX2BindTexture(tex);
-	}
+	if (tex) GX2BindTexture(tex);
 	GX2DrawTriangles(mesh.vertexCount);
 }
 
@@ -276,9 +264,7 @@ void GX2Renderer::Draw2DImage(Uint32 textureId, const SDL_Rect& srcRect, const S
 	StartFrame();
 	GX2SetOrthoProjection(0, m_width, 0, m_height);
 	GX2Texture* tex = (textureId != NO_TEXTURE_ID) ? &m_textures[textureId].gx2Tex : nullptr;
-	if (tex) {
-		GX2BindTexture(tex);
-	}
+	if (tex) GX2BindTexture(tex);
 	GX2Draw2DQuad(dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h, color);
 }
 
