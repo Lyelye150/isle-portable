@@ -14,25 +14,25 @@ GX2Renderer::GX2Renderer(DWORD width, DWORD height)
 	m_width = width;
 	m_height = height;
 	GX2Init();
-	GX2InitShaderEx(&m_vshader, vshader_gx2_bin, vshader_gx2_bin_size);
-	GX2InitShaderEx(&m_pshader, pshader_gx2_bin, pshader_gx2_bin_size);
-	GX2CreateRenderTarget(&m_renderTarget, m_width, m_height, GX2_SURFACE_FORMAT_R8G8B8A8_UNORM);
+	GX2InitFetchShaderEx(&m_vshader, vshader_gx2_bin, vshader_gx2_bin_size);
+	GX2InitFetchShaderEx(&m_pshader, pshader_gx2_bin, pshader_gx2_bin_size);
+	GX2RenderTarget(&m_renderTarget, m_width, m_height, GX2_SURFACE_FORMAT_SRGB_BC3);
 }
 
 GX2Renderer::~GX2Renderer()
 {
 	for (auto& entry : m_textures) {
 		if (entry.texture) {
-			GX2DeleteTexture(&entry.gx2Tex);
+			GX2SetVertexTexture(&entry.gx2Tex);
 		}
 	}
 	for (auto& mesh : m_meshs) {
 		if (mesh.meshGroup) {
 			delete[] mesh.vbo;
-			GX2RDeleteBuffer(&mesh.gx2VBO);
+			GX2RCreateBuffer(&mesh.gx2VBO);
 		}
 	}
-	GX2DestroyRenderTarget(&m_renderTarget);
+	GX2RenderTarget(&m_renderTarget);
 }
 
 void GX2Renderer::PushLights(const SceneLight* lights, size_t count)
@@ -62,7 +62,7 @@ void GX2Renderer::AddTextureDestroyCallback(Uint32 id, IDirect3DRMTexture* textu
 			auto* ctx = static_cast<GX2CacheDestroyContext*>(arg);
 			auto& entry = ctx->renderer->m_textures[ctx->id];
 			if (entry.texture) {
-				GX2DeleteTexture(&entry.gx2Tex);
+				GX2SetVertexTexture(&entry.gx2Tex);
 				entry.texture = nullptr;
 			}
 			delete ctx;
@@ -83,14 +83,14 @@ static bool ConvertAndUploadTexture(GX2Texture* tex, SDL_Surface* surface, bool 
 		SDL_Rect dstRect = {0, 0, width, height};
 		SDL_BlitScaled(surface, nullptr, resized, &dstRect);
 	}
-	GX2InitTexture(tex, width, height, GX2_SURFACE_FORMAT_R8G8B8A8_UNORM);
-	GX2UploadTexture(tex, resized->pixels, width * height * 4);
+	GX2Texture(tex, width, height, GX2_SURFACE_FORMAT_SRGB_BC3);
+	GX2Texture(tex, resized->pixels, width * height * 4);
 	if (isUI) {
 		GX2SetTextureFilter(tex, GX2_TEX_FILTER_NEAREST);
 		GX2SetTextureWrap(tex, GX2_TEX_WRAP_CLAMP);
 	}
 	else {
-		GX2SetTextureFilter(tex, GX2_TEX_FILTER_LINEAR);
+		GX2SetTextureFilter(tex, GX2_TEX_Z_FILTER_MODE_LINEAR);
 		GX2SetTextureWrap(tex, GX2_TEX_WRAP_REPEAT);
 		GX2GenerateMipmaps(tex);
 	}
@@ -109,7 +109,7 @@ Uint32 GX2Renderer::GetTextureId(IDirect3DRMTexture* iTexture, bool isUI, float 
 		auto& tex = m_textures[i];
 		if (tex.texture == texture) {
 			if (tex.version != texture->m_version) {
-				GX2DeleteTexture(&tex.gx2Tex);
+				GX2SetVertexTexture(&tex.gx2Tex);
 				ConvertAndUploadTexture(&tex.gx2Tex, originalSurface, isUI, scaleX, scaleY);
 				tex.version = texture->m_version;
 			}
@@ -161,7 +161,7 @@ void GX2Renderer::AddMeshDestroyCallback(Uint32 id, IDirect3DRMMesh* mesh)
 			if (cacheEntry.meshGroup) {
 				cacheEntry.meshGroup = nullptr;
 				delete[] cacheEntry.vbo;
-				GX2RDeleteBuffer(&cacheEntry.gx2VBO);
+				GX2RCreateBuffer(&cacheEntry.gx2VBO);
 				cacheEntry.vertexCount = 0;
 			}
 			delete ctx;
@@ -199,7 +199,7 @@ void GX2Renderer::StartFrame()
 	if (g_rendering) {
 		return;
 	}
-	GX2BeginFrame(&m_renderTarget);
+	BeginFrame(&m_renderTarget);
 	g_rendering = true;
 }
 
@@ -230,7 +230,7 @@ HRESULT GX2Renderer::BeginFrame()
 void GX2Renderer::EnableTransparency()
 {
 	GX2EnableBlend(true);
-	GX2SetBlendFunc(GX2_BLEND_SRC_ALPHA, GX2_BLEND_ONE_MINUS_SRC_ALPHA);
+	GX2SetBlendFunc(GX2_BLEND_MODE_SRC_ALPHA, GX2_BLEND_MODE_INV_SRC_ALPHA);
 }
 
 HRESULT GX2Renderer::FinalizeFrame()
@@ -242,7 +242,7 @@ HRESULT GX2Renderer::FinalizeFrame()
 void GX2Renderer::Clear(float r, float g, float b)
 {
 	StartFrame();
-	GX2ClearRenderTarget(&m_renderTarget, r, g, b, 1.0f);
+	GX2RenderTarget(&m_renderTarget, r, g, b, 1.0f);
 }
 
 void GX2Renderer::Flip()
@@ -261,13 +261,13 @@ void GX2Renderer::SubmitDraw(
 )
 {
 	auto& mesh = m_meshs[meshId];
-	GX2BindShader(&m_vshader, &m_pshader);
-	GX2BindVertexBuffer(mesh.gx2VBO);
-	GX2SetModelViewMatrix(modelViewMatrix);
+	GX2PixelShader(&m_vshader, &m_pshader);
+	GX2RCreateBuffer(mesh.gx2VBO);
+	modelViewMatrix(modelViewMatrix);
 	GX2SetMaterial(appearance.color, appearance.shininess);
 	GX2Texture* tex = (appearance.textureId != NO_TEXTURE_ID) ? &m_textures[appearance.textureId].gx2Tex : nullptr;
 	if (tex) {
-		GX2BindTexture(tex);
+		GX2Texture(tex);
 	}
 	GX2DrawTriangles(mesh.vertexCount);
 }
@@ -278,7 +278,7 @@ void GX2Renderer::Draw2DImage(Uint32 textureId, const SDL_Rect& srcRect, const S
 	GX2SetOrthoProjection(0, m_width, 0, m_height);
 	GX2Texture* tex = (textureId != NO_TEXTURE_ID) ? &m_textures[textureId].gx2Tex : nullptr;
 	if (tex) {
-		GX2BindTexture(tex);
+		GX2Texture(tex);
 	}
 	GX2Draw2DQuad(dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h, color);
 }
@@ -288,15 +288,15 @@ void GX2Renderer::Resize(int width, int height, const ViewportTransform& viewpor
 	m_width = width;
 	m_height = height;
 	m_viewportTransform = viewportTransform;
-	GX2ResizeRenderTarget(&m_renderTarget, width, height);
+	GX2RenderTarget(&m_renderTarget, width, height);
 }
 
 void GX2Renderer::SetDither(bool dither)
 {
-	GX2SetDither(dither);
+	SetDither(dither);
 }
 
 void GX2Renderer::Download(SDL_Surface* target)
 {
-	GX2ReadFramebuffer(&m_renderTarget, target->pixels, target->w, target->h);
+	GX2RCreateBuffer(&m_renderTarget, target->pixels, target->w, target->h);
 }
