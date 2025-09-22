@@ -277,7 +277,7 @@ void GX2Renderer::Draw2DImage(Uint32 textureId, const SDL_Rect& srcRect, const S
 	StartFrame();
 	GX2SetOrthoProjection(0, m_width, 0, m_height);
 	GX2Texture* tex = (textureId != NO_TEXTURE_ID) ? &m_textures[textureId].gx2Tex : nullptr;
-if (tex) {
+	if (tex) {
 		GX2BindTexture(tex);
 	}
 	GX2Draw2DQuad(dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h, color);
