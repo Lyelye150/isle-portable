@@ -45,7 +45,9 @@ void GX2Renderer::SetProjection(const D3DRMMATRIX4D& projection, D3DVALUE front,
 	memcpy(&m_projection, &projection, sizeof(D3DRMMATRIX4D));
 }
 
-void GX2Renderer::SetFrustumPlanes(const Plane* frustumPlanes) {}
+void GX2Renderer::SetFrustumPlanes(const Plane* frustumPlanes)
+{
+}
 
 struct GX2CacheDestroyContext {
 	GX2Renderer* renderer;
@@ -86,7 +88,8 @@ static bool ConvertAndUploadTexture(GX2Texture* tex, SDL_Surface* surface, bool 
 	if (isUI) {
 		GX2SetTextureFilter(tex, GX2_TEX_FILTER_NEAREST);
 		GX2SetTextureWrap(tex, GX2_TEX_WRAP_CLAMP);
-	} else {
+	}
+	else {
 		GX2SetTextureFilter(tex, GX2_TEX_FILTER_LINEAR);
 		GX2SetTextureWrap(tex, GX2_TEX_WRAP_REPEAT);
 		GX2GenerateMipmaps(tex);
@@ -127,8 +130,8 @@ Uint32 GX2Renderer::GetTextureId(IDirect3DRMTexture* iTexture, bool isUI, float 
 		}
 	}
 	m_textures.push_back(std::move(entry));
-	AddTextureDestroyCallback((Uint32)(m_textures.size() - 1), texture);
-	return (Uint32)(m_textures.size() - 1);
+	AddTextureDestroyCallback((Uint32) (m_textures.size() - 1), texture);
+	return (Uint32) (m_textures.size() - 1);
 }
 
 GX2MeshCacheEntry GX2UploadMesh(const MeshGroup& meshGroup)
@@ -187,13 +190,15 @@ Uint32 GX2Renderer::GetMeshId(IDirect3DRMMesh* mesh, const MeshGroup* meshGroup)
 		}
 	}
 	m_meshs.push_back(std::move(newCache));
-	AddMeshDestroyCallback((Uint32)(m_meshs.size() - 1), mesh);
-	return (Uint32)(m_meshs.size() - 1);
+	AddMeshDestroyCallback((Uint32) (m_meshs.size() - 1), mesh);
+	return (Uint32) (m_meshs.size() - 1);
 }
 
 void GX2Renderer::StartFrame()
 {
-	if (g_rendering) return;
+	if (g_rendering) {
+		return;
+	}
 	GX2BeginFrame(&m_renderTarget);
 	g_rendering = true;
 }
@@ -201,9 +206,15 @@ void GX2Renderer::StartFrame()
 void GX2Renderer::UploadLights()
 {
 	for (const auto& light : m_lights) {
-		if (light.positional == 0.0f && light.directional == 0.0f) GX2SetAmbientLight(light.color);
-		else if (light.directional == 1.0f) GX2SetDirectionalLight(light.direction, light.color);
-		else if (light.positional == 1.0f) GX2SetPointLight(light.position, light.color);
+		if (light.positional == 0.0f && light.directional == 0.0f) {
+			GX2SetAmbientLight(light.color);
+		}
+		else if (light.directional == 1.0f) {
+			GX2SetDirectionalLight(light.direction, light.color);
+		}
+		else if (light.positional == 1.0f) {
+			GX2SetPointLight(light.position, light.color);
+		}
 	}
 }
 
@@ -255,7 +266,9 @@ void GX2Renderer::SubmitDraw(
 	GX2SetModelViewMatrix(modelViewMatrix);
 	GX2SetMaterial(appearance.color, appearance.shininess);
 	GX2Texture* tex = (appearance.textureId != NO_TEXTURE_ID) ? &m_textures[appearance.textureId].gx2Tex : nullptr;
-	if (tex) GX2BindTexture(tex);
+	if (tex) {
+		GX2BindTexture(tex);
+	}
 	GX2DrawTriangles(mesh.vertexCount);
 }
 
@@ -264,7 +277,9 @@ void GX2Renderer::Draw2DImage(Uint32 textureId, const SDL_Rect& srcRect, const S
 	StartFrame();
 	GX2SetOrthoProjection(0, m_width, 0, m_height);
 	GX2Texture* tex = (textureId != NO_TEXTURE_ID) ? &m_textures[textureId].gx2Tex : nullptr;
-	if (tex) GX2BindTexture(tex);
+if (tex) {
+		GX2BindTexture(tex);
+	}
 	GX2Draw2DQuad(dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h, color);
 }
 
