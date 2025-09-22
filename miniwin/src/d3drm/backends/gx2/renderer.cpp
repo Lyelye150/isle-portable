@@ -87,7 +87,8 @@ static bool ConvertAndUploadTexture(GX2Texture* tex, SDL_Surface* surface, bool 
 	if (isUI) {
 		GX2SetTextureFilter(tex, GX2_TEX_FILTER_NEAREST);
 		GX2SetTextureWrap(tex, GX2_TEX_WRAP_CLAMP);
-	} else {
+	}
+	else {
 		GX2SetTextureFilter(tex, GX2_TEX_FILTER_LINEAR);
 		GX2SetTextureWrap(tex, GX2_TEX_WRAP_REPEAT);
 		GX2GenerateMipmaps(tex);
@@ -111,7 +112,7 @@ Uint32 GX2Renderer::GetTextureId(IDirect3DRMTexture* iTexture, bool isUI, float 
 				ConvertAndUploadTexture(&tex.gx2Tex, originalSurface, isUI, scaleX, scaleY);
 				tex.version = texture->m_version;
 			}
-				return i;
+			return i;
 		}
 	}
 	GX2TextureCacheEntry entry;
@@ -128,8 +129,8 @@ Uint32 GX2Renderer::GetTextureId(IDirect3DRMTexture* iTexture, bool isUI, float 
 		}
 	}
 	m_textures.push_back(std::move(entry));
-	AddTextureDestroyCallback((Uint32)(m_textures.size() - 1), texture);
-	return (Uint32)(m_textures.size() - 1);
+	AddTextureDestroyCallback((Uint32) (m_textures.size() - 1), texture);
+	return (Uint32) (m_textures.size() - 1);
 }
 
 GX2MeshCacheEntry GX2UploadMesh(const MeshGroup& meshGroup)
@@ -185,11 +186,11 @@ Uint32 GX2Renderer::GetMeshId(IDirect3DRMMesh* mesh, const MeshGroup* meshGroup)
 			m_meshs[i] = std::move(newCache);
 			AddMeshDestroyCallback(i, mesh);
 			return i;
-			}
+		}
 	}
 	m_meshs.push_back(std::move(newCache));
-	AddMeshDestroyCallback((Uint32)(m_meshs.size() - 1), mesh);
-	return (Uint32)(m_meshs.size() - 1);
+	AddMeshDestroyCallback((Uint32) (m_meshs.size() - 1), mesh);
+	return (Uint32) (m_meshs.size() - 1);
 }
 
 void GX2Renderer::StartFrame()
@@ -206,9 +207,11 @@ void GX2Renderer::UploadLights()
 	for (const auto& light : m_lights) {
 		if (light.positional == 0.0f && light.directional == 0.0f) {
 			GX2SetAmbientLight(light.color);
-		} else if (light.directional == 1.0f) {
+		}
+		else if (light.directional == 1.0f) {
 			GX2SetDirectionalLight(light.direction, light.color);
-		} else if (light.positional == 1.0f) {
+		}
+		else if (light.positional == 1.0f) {
 			GX2SetPointLight(light.position, light.color);
 		}
 	}
@@ -253,7 +256,8 @@ void GX2Renderer::SubmitDraw(
 	const D3DRMMATRIX4D& worldMatrix,
 	const D3DRMMATRIX4D& viewMatrix,
 	const Matrix3x3& normalMatrix,
-	const Appearance& appearance)
+	const Appearance& appearance
+)
 {
 	auto& mesh = m_meshs[meshId];
 	GX2BindShader(&m_shader);
