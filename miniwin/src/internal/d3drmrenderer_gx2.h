@@ -4,10 +4,13 @@
 #include "ddraw_impl.h"
 #include "meshutils.h"
 
-#include <SDL3/SDL.h>
 #include <vector>
+#include <SDL3/SDL.h>
 #include <wut.h>
-#include <gx2.h>
+#include <gx2/shaders.h>
+#include <gx2/surface.h>
+#include <gx2/texture.h>
+#include <gx2/display.h>
 
 DEFINE_GUID(GX2_GUID, 0xA12B56F3, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3D, 0x53);
 
@@ -32,8 +35,11 @@ public:
 
     void PushLights(const SceneLight* lightsArray, size_t count) override;
     void SetProjection(const D3DRMMATRIX4D& projection, D3DVALUE front, D3DVALUE back) override;
+    void SetFrustumPlanes(const Plane* frustumPlanes) override;
+
     Uint32 GetTextureId(IDirect3DRMTexture* texture, bool isUI, float scaleX, float scaleY) override;
     Uint32 GetMeshId(IDirect3DRMMesh* mesh, const MeshGroup* meshGroup) override;
+
     HRESULT BeginFrame() override;
     void EnableTransparency() override;
     void SubmitDraw(
@@ -45,15 +51,13 @@ public:
         const Appearance& appearance
     ) override;
     HRESULT FinalizeFrame() override;
+
     void Resize(int width, int height, const ViewportTransform& viewportTransform) override;
     void Clear(float r, float g, float b) override;
     void Flip() override;
     void Draw2DImage(Uint32 textureId, const SDL_Rect& srcRect, const SDL_Rect& dstRect, FColor color) override;
     void Download(SDL_Surface* target) override;
     void SetDither(bool dither) override;
-
-    // implement this in .cpp so the class is no longer abstract
-    void SetFrustumPlanes(const Plane* frustumPlanes) override;
 
 private:
     void AddTextureDestroyCallback(Uint32 id, IDirect3DRMTexture* texture);
