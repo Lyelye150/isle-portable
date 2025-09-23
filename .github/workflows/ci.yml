@@ -86,7 +86,7 @@ jobs:
         if: ${{ matrix.wiiu }}
         run: |
           sudo apt-get update
-          dkp-pacman -Syu --needed wiiu-dev
+          dkp-pacman -Syu --needed wiiu-dev --noconfirm
 
       - name: Install Linux dependencies (apt-get)
         if: ${{ matrix.linux }}
