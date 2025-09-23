@@ -153,7 +153,7 @@ jobs:
               -DISLE_DEBUG=${{ matrix.debug || 'OFF' }} \
               -Werror=dev"
 
-      - name: Make renderer.gsh (WIIU)
+      - name: Make renderer.gsh (Wii U)
         if: ${{ matrix.wiiu }}
         run: |
           cd isle-portable/miniwin/src/d3drm/backends/gx2/
