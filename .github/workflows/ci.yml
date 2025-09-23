@@ -156,7 +156,7 @@ jobs:
       - name: Make renderer.gsh (Wii U)
         if: ${{ matrix.wiiu }}
         run: |
-          cd isle-portable/miniwin/src/d3drm/backends/gx2/
+          cd miniwin/src/d3drm/backends/gx2/
           gfd_compiler --vsh renderer.vsh --psh renderer.psh --out renderer.gsh
           mv renderer.gsh ../../../../packaging/wiiu/content/
 
