@@ -82,6 +82,12 @@ jobs:
           unzip "makerom-v0.18-ubuntu_x86_64.zip" "makerom" -d "/opt/devkitpro/tools/bin"
           chmod a+x /opt/devkitpro/tools/bin/makerom
 
+      - name: Install Wii U dependencies
+        if: ${{ matrix.wiiu }}
+        run: |
+          sudo apt-get update
+          dkp-pacman -Syu --needed wiiu-dev
+
       - name: Install Linux dependencies (apt-get)
         if: ${{ matrix.linux }}
         run: |
@@ -157,7 +163,7 @@ jobs:
         if: ${{ matrix.wiiu }}
         run: |
           cd miniwin/src/d3drm/backends/gx2/
-          gfd_compiler --vsh renderer.vsh --psh renderer.psh --out renderer.gsh
+          /opt/wut/bin/gfd_compiler --vsh renderer.vsh --psh renderer.psh --out renderer.gsh
           mv renderer.gsh ../../../../packaging/wiiu/content/
 
       - name: Configure (CMake)
