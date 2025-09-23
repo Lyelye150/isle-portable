@@ -82,12 +82,6 @@ jobs:
           unzip "makerom-v0.18-ubuntu_x86_64.zip" "makerom" -d "/opt/devkitpro/tools/bin"
           chmod a+x /opt/devkitpro/tools/bin/makerom
 
-      - name: Install Wii U dependencies
-        if: ${{ matrix.wiiu }}
-        run: |
-          sudo apt-get update
-          dkp-pacman -Syu --needed wiiu-dev --noconfirm
-
       - name: Install Linux dependencies (apt-get)
         if: ${{ matrix.linux }}
         run: |
