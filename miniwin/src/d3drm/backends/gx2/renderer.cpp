@@ -1,302 +1,125 @@
-#include "d3drmrenderer_gx2.h"
-#include "d3drmtexture_impl.h"
-#include "ddraw_impl.h"
-#include "meshutils.h"
-#include "miniwin.h"
+#include <gfd.h>
+#include <gx2/draw.h>
+#include <gx2/mem.h>
+#include <gx2/registers.h>
+#include <gx2/shaders.h>
+#include <gx2r/buffer.h>
+#include <gx2r/draw.h>
+#include <stdio.h>
+#include <string.h>
+#include <whb/file.h>
+#include <whb/gfx.h>
+#include <whb/log.h>
+#include <whb/log_udp.h>
+#include <whb/proc.h>
+#include <whb/sdcard.h>
+#include <coreinit/systeminfo.h>
+#include <coreinit/thread.h>
+#include <coreinit/time.h>
 
-#include <algorithm>
-#include <cstring>
-
-static bool g_rendering = false;
-
-GX2Renderer::GX2Renderer(DWORD width, DWORD height)
-{
-	m_width = width;
-	m_height = height;
-	GX2Init();
-	GX2InitFetchShaderEx(&m_vshader, vshader_gx2_bin, vshader_gx2_bin_size);
-	GX2InitFetchShaderEx(&m_pshader, pshader_gx2_bin, pshader_gx2_bin_size);
-	GX2RenderTarget(&m_renderTarget, m_width, m_height, GX2_SURFACE_FORMAT_SRGB_BC3);
-}
-
-GX2Renderer::~GX2Renderer()
-{
-	for (auto& entry : m_textures) {
-		if (entry.texture) {
-			GX2SetVertexTexture(&entry.gx2Tex);
-		}
-	}
-	for (auto& mesh : m_meshs) {
-		if (mesh.meshGroup) {
-			delete[] mesh.vbo;
-			GX2RCreateBuffer(&mesh.gx2VBO);
-		}
-	}
-	GX2RenderTarget(&m_renderTarget);
-}
-
-void GX2Renderer::PushLights(const SceneLight* lights, size_t count)
-{
-	m_lights.assign(lights, lights + count);
-}
-
-void GX2Renderer::SetProjection(const D3DRMMATRIX4D& projection, D3DVALUE front, D3DVALUE back)
-{
-	memcpy(&m_projection, &projection, sizeof(D3DRMMATRIX4D));
-}
-
-void GX2Renderer::SetFrustumPlanes(const Plane* frustumPlanes)
-{
-}
-
-struct GX2CacheDestroyContext {
-	GX2Renderer* renderer;
-	Uint32 id;
+static const float sPositionData[] = {
+    1.0f, -1.0f, 0.0f, 1.0f,
+    0.0f, 1.0f, 0.0f, 1.0f,
+   -1.0f, -1.0f, 1.0f, 1.0f
 };
 
-void GX2Renderer::AddTextureDestroyCallback(Uint32 id, IDirect3DRMTexture* texture)
-{
-	auto* ctx = new GX2CacheDestroyContext{this, id};
-	texture->AddDestroyCallback(
-		[](IDirect3DRMObject* obj, void* arg) {
-			auto* ctx = static_cast<GX2CacheDestroyContext*>(arg);
-			auto& entry = ctx->renderer->m_textures[ctx->id];
-			if (entry.texture) {
-				GX2SetVertexTexture(&entry.gx2Tex);
-				entry.texture = nullptr;
-			}
-			delete ctx;
-		},
-		ctx
-	);
-}
+static const float sColourData[] = {
+    1.0f, 0.0f, 0.0f, 1.0f,
+    0.0f, 1.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 1.0f, 1.0f
+};
 
-static bool ConvertAndUploadTexture(GX2Texture* tex, SDL_Surface* surface, bool isUI, float scaleX, float scaleY)
-{
-	int width = surface->w;
-	int height = surface->h;
-	SDL_Surface* resized = surface;
-	if (scaleX != 1.0f || scaleY != 1.0f) {
-		width = static_cast<int>(width * scaleX);
-		height = static_cast<int>(height * scaleY);
-		resized = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32, SDL_PIXELFORMAT_RGBA32);
-		SDL_Rect dstRect = {0, 0, width, height};
-		SDL_BlitScaled(surface, nullptr, resized, &dstRect);
-	}
-	GX2Texture(tex, width, height, GX2_SURFACE_FORMAT_SRGB_BC3);
-	GX2Texture(tex, resized->pixels, width * height * 4);
-	if (isUI) {
-		GX2SetTextureFilter(tex, GX2_TEX_FILTER_NEAREST);
-		GX2SetTextureWrap(tex, GX2_TEX_WRAP_CLAMP);
-	}
-	else {
-		GX2SetTextureFilter(tex, GX2_TEX_Z_FILTER_MODE_LINEAR);
-		GX2SetTextureWrap(tex, GX2_TEX_WRAP_REPEAT);
-		GX2GenerateMipmaps(tex);
-	}
-	if (resized != surface) {
-		SDL_FreeSurface(resized);
-	}
-	return true;
-}
+int main(int argc, char **argv) {
+    GX2RBuffer positionBuffer = {0};
+    GX2RBuffer colourBuffer = {0};
+    WHBGfxShaderGroup group = {0};
+    void *buffer = NULL;
+    char *gshFileData = NULL;
+    char path[256];
+    int result = 0;
 
-Uint32 GX2Renderer::GetTextureId(IDirect3DRMTexture* iTexture, bool isUI, float scaleX, float scaleY)
-{
-	auto texture = static_cast<Direct3DRMTextureImpl*>(iTexture);
-	auto surface = static_cast<DirectDrawSurfaceImpl*>(texture->m_surface);
-	SDL_Surface* originalSurface = surface->m_surface;
-	for (Uint32 i = 0; i < m_textures.size(); ++i) {
-		auto& tex = m_textures[i];
-		if (tex.texture == texture) {
-			if (tex.version != texture->m_version) {
-				GX2SetVertexTexture(&tex.gx2Tex);
-				ConvertAndUploadTexture(&tex.gx2Tex, originalSurface, isUI, scaleX, scaleY);
-				tex.version = texture->m_version;
-			}
-			return i;
-		}
-	}
-	GX2TextureCacheEntry entry;
-	entry.texture = texture;
-	entry.version = texture->m_version;
-	if (!ConvertAndUploadTexture(&entry.gx2Tex, originalSurface, isUI, scaleX, scaleY)) {
-		return NO_TEXTURE_ID;
-	}
-	for (Uint32 i = 0; i < m_textures.size(); ++i) {
-		if (!m_textures[i].texture) {
-			m_textures[i] = std::move(entry);
-			AddTextureDestroyCallback(i, texture);
-			return i;
-		}
-	}
-	m_textures.push_back(std::move(entry));
-	AddTextureDestroyCallback((Uint32) (m_textures.size() - 1), texture);
-	return (Uint32) (m_textures.size() - 1);
-}
+    WHBLogUdpInit();
+    WHBProcInit();
+    WHBGfxInit();
 
-GX2MeshCacheEntry GX2UploadMesh(const MeshGroup& meshGroup)
-{
-	GX2MeshCacheEntry cache{&meshGroup, meshGroup.version};
-	std::vector<D3DRMVERTEX> vertexBuffer(meshGroup.vertices.begin(), meshGroup.vertices.end());
-	std::vector<uint16_t> indexBuffer(meshGroup.indices.begin(), meshGroup.indices.end());
-	std::vector<D3DRMVERTEX> uploadBuffer;
-	uploadBuffer.reserve(indexBuffer.size());
-	for (auto idx : indexBuffer) {
-		uploadBuffer.push_back(vertexBuffer[idx]);
-	}
-	cache.vertexCount = uploadBuffer.size();
-	cache.vbo = new D3DRMVERTEX[cache.vertexCount];
-	memcpy(cache.vbo, uploadBuffer.data(), cache.vertexCount * sizeof(D3DRMVERTEX));
-	GX2RCreateBuffer(&cache.gx2VBO, cache.vbo, cache.vertexCount * sizeof(D3DRMVERTEX), GX2R_BUFFER_BIND_VERTEX_BUFFER);
-	return cache;
-}
+    if (!WHBMountSdCard()) {
+        result = -1;
+        goto exit;
+    }
 
-void GX2Renderer::AddMeshDestroyCallback(Uint32 id, IDirect3DRMMesh* mesh)
-{
-	auto* ctx = new GX2CacheDestroyContext{this, id};
-	mesh->AddDestroyCallback(
-		[](IDirect3DRMObject* obj, void* arg) {
-			auto* ctx = static_cast<GX2CacheDestroyContext*>(arg);
-			auto& cacheEntry = ctx->renderer->m_meshs[ctx->id];
-			if (cacheEntry.meshGroup) {
-				cacheEntry.meshGroup = nullptr;
-				delete[] cacheEntry.vbo;
-				GX2RCreateBuffer(&cacheEntry.gx2VBO);
-				cacheEntry.vertexCount = 0;
-			}
-			delete ctx;
-		},
-		ctx
-	);
-}
+    sprintf(path, "%s/wiiu/isle-U/content/renderer.gsh", WHBGetSdCardMountPath());
+    gshFileData = WHBReadWholeFile(path, NULL);
+    if (!gshFileData) {
+        result = -1;
+        goto exit;
+    }
 
-Uint32 GX2Renderer::GetMeshId(IDirect3DRMMesh* mesh, const MeshGroup* meshGroup)
-{
-	for (Uint32 i = 0; i < m_meshs.size(); ++i) {
-		auto& cache = m_meshs[i];
-		if (cache.meshGroup == meshGroup) {
-			if (cache.version != meshGroup->version) {
-				cache = std::move(GX2UploadMesh(*meshGroup));
-			}
-			return i;
-		}
-	}
-	auto newCache = GX2UploadMesh(*meshGroup);
-	for (Uint32 i = 0; i < m_meshs.size(); ++i) {
-		if (!m_meshs[i].meshGroup) {
-			m_meshs[i] = std::move(newCache);
-			AddMeshDestroyCallback(i, mesh);
-			return i;
-		}
-	}
-	m_meshs.push_back(std::move(newCache));
-	AddMeshDestroyCallback((Uint32) (m_meshs.size() - 1), mesh);
-	return (Uint32) (m_meshs.size() - 1);
-}
+    if (!WHBGfxLoadGFDShaderGroup(&group, 0, gshFileData)) {
+        result = -1;
+        goto exit;
+    }
 
-void GX2Renderer::StartFrame()
-{
-	if (g_rendering) {
-		return;
-	}
-	BeginFrame(&m_renderTarget);
-	g_rendering = true;
-}
+    WHBGfxInitShaderAttribute(&group, "aPosition", 0, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
+    WHBGfxInitShaderAttribute(&group, "aColour", 1, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
+    WHBGfxInitFetchShader(&group);
 
-void GX2Renderer::UploadLights()
-{
-	for (const auto& light : m_lights) {
-		if (light.positional == 0.0f && light.directional == 0.0f) {
-			GX2SetAmbientLight(light.color);
-		}
-		else if (light.directional == 1.0f) {
-			GX2SetDirectionalLight(light.direction, light.color);
-		}
-		else if (light.positional == 1.0f) {
-			GX2SetPointLight(light.position, light.color);
-		}
-	}
-}
+    WHBFreeWholeFile(gshFileData);
+    gshFileData = NULL;
 
-HRESULT GX2Renderer::BeginFrame()
-{
-	StartFrame();
-	GX2EnableDepthTest(true);
-	UploadLights();
-	GX2UploadProjectionMatrix(&m_projection);
-	return S_OK;
-}
+    positionBuffer.flags = GX2R_RESOURCE_BIND_VERTEX_BUFFER | GX2R_RESOURCE_USAGE_CPU_READ | GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ;
+    positionBuffer.elemSize = 4 * 4;
+    positionBuffer.elemCount = 3;
+    GX2RCreateBuffer(&positionBuffer);
+    buffer = GX2RLockBufferEx(&positionBuffer, 0);
+    memcpy(buffer, sPositionData, positionBuffer.elemSize * positionBuffer.elemCount);
+    GX2RUnlockBufferEx(&positionBuffer, 0);
 
-void GX2Renderer::EnableTransparency()
-{
-	GX2EnableBlend(true);
-	GX2SetBlendFunc(GX2_BLEND_MODE_SRC_ALPHA, GX2_BLEND_MODE_INV_SRC_ALPHA);
-}
+    colourBuffer.flags = GX2R_RESOURCE_BIND_VERTEX_BUFFER | GX2R_RESOURCE_USAGE_CPU_READ | GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ;
+    colourBuffer.elemSize = 4 * 4;
+    colourBuffer.elemCount = 3;
+    GX2RCreateBuffer(&colourBuffer);
+    buffer = GX2RLockBufferEx(&colourBuffer, 0);
+    memcpy(buffer, sColourData, colourBuffer.elemSize * colourBuffer.elemCount);
+    GX2RUnlockBufferEx(&colourBuffer, 0);
 
-HRESULT GX2Renderer::FinalizeFrame()
-{
-	GX2FlushCommands();
-	return S_OK;
-}
+    while (WHBProcIsRunning()) {
+        float *colours = (float *)GX2RLockBufferEx(&colourBuffer, 0);
+        for (int i = 0; i < 12; i++) {
+            colours[i] = colours[i] >= 1.0f ? 0.0f : (colours[i] + 0.01f);
+        }
+        GX2RUnlockBufferEx(&colourBuffer, 0);
 
-void GX2Renderer::Clear(float r, float g, float b)
-{
-	StartFrame();
-	GX2RenderTarget(&m_renderTarget, r, g, b, 1.0f);
-}
+        WHBGfxBeginRender();
 
-void GX2Renderer::Flip()
-{
-	GX2EndFrame();
-	g_rendering = false;
-}
+        WHBGfxBeginRenderTV();
+        WHBGfxClearColor(0.0f, 0.0f, 0.1f, 1.0f);
+        GX2SetFetchShader(&group.fetchShader);
+        GX2SetVertexShader(group.vertexShader);
+        GX2SetPixelShader(group.pixelShader);
+        GX2RSetAttributeBuffer(&positionBuffer, 0, positionBuffer.elemSize, 0);
+        GX2RSetAttributeBuffer(&colourBuffer, 1, colourBuffer.elemSize, 0);
+        GX2DrawEx(GX2_PRIMITIVE_MODE_TRIANGLES, 3, 0, 1);
+        WHBGfxFinishRenderTV();
 
-void GX2Renderer::SubmitDraw(
-	DWORD meshId,
-	const D3DRMMATRIX4D& modelViewMatrix,
-	const D3DRMMATRIX4D& worldMatrix,
-	const D3DRMMATRIX4D& viewMatrix,
-	const Matrix3x3& normalMatrix,
-	const Appearance& appearance
-)
-{
-	auto& mesh = m_meshs[meshId];
-	GX2PixelShader(&m_vshader, &m_pshader);
-	GX2RCreateBuffer(mesh.gx2VBO);
-	modelViewMatrix(modelViewMatrix);
-	GX2SetMaterial(appearance.color, appearance.shininess);
-	GX2Texture* tex = (appearance.textureId != NO_TEXTURE_ID) ? &m_textures[appearance.textureId].gx2Tex : nullptr;
-	if (tex) {
-		GX2Texture(tex);
-	}
-	GX2DrawTriangles(mesh.vertexCount);
-}
+        WHBGfxBeginRenderDRC();
+        WHBGfxClearColor(0.1f, 0.0f, 0.1f, 1.0f);
+        GX2SetFetchShader(&group.fetchShader);
+        GX2SetVertexShader(group.vertexShader);
+        GX2SetPixelShader(group.pixelShader);
+        GX2RSetAttributeBuffer(&positionBuffer, 0, positionBuffer.elemSize, 0);
+        GX2RSetAttributeBuffer(&colourBuffer, 1, colourBuffer.elemSize, 0);
+        GX2DrawEx(GX2_PRIMITIVE_MODE_TRIANGLES, 3, 0, 1);
+        WHBGfxFinishRenderDRC();
 
-void GX2Renderer::Draw2DImage(Uint32 textureId, const SDL_Rect& srcRect, const SDL_Rect& dstRect, FColor color)
-{
-	StartFrame();
-	GX2SetOrthoProjection(0, m_width, 0, m_height);
-	GX2Texture* tex = (textureId != NO_TEXTURE_ID) ? &m_textures[textureId].gx2Tex : nullptr;
-	if (tex) {
-		GX2Texture(tex);
-	}
-	GX2Draw2DQuad(dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h, color);
-}
+        WHBGfxFinishRender();
+    }
 
-void GX2Renderer::Resize(int width, int height, const ViewportTransform& viewportTransform)
-{
-	m_width = width;
-	m_height = height;
-	m_viewportTransform = viewportTransform;
-	GX2RenderTarget(&m_renderTarget, width, height);
-}
-
-void GX2Renderer::SetDither(bool dither)
-{
-	SetDither(dither);
-}
-
-void GX2Renderer::Download(SDL_Surface* target)
-{
-	GX2RCreateBuffer(&m_renderTarget, target->pixels, target->w, target->h);
+exit:
+    GX2RDestroyBufferEx(&positionBuffer, 0);
+    GX2RDestroyBufferEx(&colourBuffer, 0);
+    WHBUnmountSdCard();
+    WHBGfxShutdown();
+    WHBProcShutdown();
+    WHBLogUdpDeinit();
+    return result;
 }

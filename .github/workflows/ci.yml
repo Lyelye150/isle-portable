@@ -153,6 +153,13 @@ jobs:
               -DISLE_DEBUG=${{ matrix.debug || 'OFF' }} \
               -Werror=dev"
 
+      - name: Make renderer.gsh (WIIU)
+        if: ${{ matrix.wiiu }}
+        run: |
+          cd isle-portable/miniwin/src/d3drm/backends/gx2/
+          gfd_compiler --vsh renderer.vsh --psh renderer.psh --out renderer.gsh
+          mv renderer.gsh ../../../../packaging/wiiu/content/
+
       - name: Configure (CMake)
         if: ${{ !matrix.android }}
         run: |
