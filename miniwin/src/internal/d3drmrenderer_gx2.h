@@ -5,12 +5,12 @@
 #include "meshutils.h"
 
 #include <SDL3/SDL.h>
-#include <gx2r/buffer.h>
 #include <gx2/context.h>
 #include <gx2/display.h>
 #include <gx2/shaders.h>
 #include <gx2/surface.h>
 #include <gx2/texture.h>
+#include <gx2r/buffer.h>
 #include <vector>
 #include <wut.h>
 

@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 	while (WHBProcIsRunning()) {
 		float* colours = (float*) GX2RLockBufferEx(&colourBuffer, 0);
 		for (int i = 0; i < 12; i) {
-			colours[i] = colours[i] >= 1.0f ? 0.0f : (colours[i]  0.01f);
+			colours[i] = colours[i] >= 1.0f ? 0.0f : (colours[i] 0.01f);
 		}
 		GX2RUnlockBufferEx(&colourBuffer, 0);
 
