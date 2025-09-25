@@ -12,8 +12,8 @@ static const float sPositionData[] = {1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
 
 static const float sColourData[] = {1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f};
 
- int main(int argc, char** argv)
- {
+int main(int argc, char** argv)
+{
 	GX2RBuffer positionBuffer = {0};
 	GX2RBuffer colourBuffer = {0};
 	WHBGfxShaderGroup group = {0};
@@ -100,7 +100,7 @@ static const float sColourData[] = {1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.
 		WHBGfxFinishRender();
 	}
 
- exit:
+exit:
 	GX2RDestroyBufferEx(&positionBuffer, 0);
 	GX2RDestroyBufferEx(&colourBuffer, 0);
 	WHBUnmountSdCard();
@@ -108,4 +108,4 @@ static const float sColourData[] = {1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.
 	WHBProcShutdown();
 	WHBLogUdpDeinit();
 	return result;
- }
+}
