@@ -68,7 +68,7 @@ int main(int argc, char** argv)
 		goto exit;
 	}
 
-if (!WHBGfxLoadGFDShaderGroup(&group, 0, gshFileData)) {
+	if (!WHBGfxLoadGFDShaderGroup(&group, 0, gshFileData)) {
 		result = -1;
 		goto exit;
 	}
@@ -80,7 +80,8 @@ if (!WHBGfxLoadGFDShaderGroup(&group, 0, gshFileData)) {
 	FreeWholeFile(gshFileData);
 	gshFileData = nullptr;
 
-	positionBuffer.flags = GX2R_RESOURCE_BIND_VERTEX_BUFFER | GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ;
+	positionBuffer.flags =
+		GX2R_RESOURCE_BIND_VERTEX_BUFFER | GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ;
 	positionBuffer.elemSize = sizeof(float) * 4;
 	positionBuffer.elemCount = 3;
 	GX2CreateVertexBuffer(&positionBuffer);
