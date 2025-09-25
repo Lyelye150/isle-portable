@@ -1,7 +1,7 @@
-#include <cstdio>
 #include <coreinit/systeminfo.h>
 #include <coreinit/thread.h>
 #include <coreinit/time.h>
+#include <cstdio>
 #include <gfd.h>
 #include <gx2/draw.h>
 #include <gx2/mem.h>
