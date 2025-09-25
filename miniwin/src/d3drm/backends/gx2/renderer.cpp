@@ -17,15 +17,22 @@ static const float sColourData[] = {1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.
 char* ReadWholeFile(const char* path, size_t* size)
 {
 	FILE* f = fopen(path, "rb");
-	if (!f) return nullptr;
+	if (!f) {
+		return nullptr;
+	}
 	fseek(f, 0, SEEK_END);
 	size_t fsize = ftell(f);
 	rewind(f);
-	char* buffer = (char*)malloc(fsize + 1);
-	if (!buffer) { fclose(f); return nullptr; }
+	char* buffer = (char*) malloc(fsize + 1);
+	if (!buffer) {
+		fclose(f);
+		return nullptr;
+	}
 	fread(buffer, 1, fsize, f);
 	buffer[fsize] = '\0';
-	if (size) *size = fsize;
+	if (size) {
+		*size = fsize;
+	}
 	fclose(f);
 	return buffer;
 }
@@ -92,7 +99,7 @@ int main(int argc, char** argv)
 	GX2RUnlockBufferEx(&colourBuffer, GX2R_RESOURCE_USAGE_CPU_WRITE);
 
 	while (WHBProcIsRunning()) {
-		float* colours = (float*)GX2RLockBufferEx(&colourBuffer, GX2R_RESOURCE_USAGE_CPU_WRITE);
+		float* colours = (float*) GX2RLockBufferEx(&colourBuffer, GX2R_RESOURCE_USAGE_CPU_WRITE);
 		for (int i = 0; i < 12; i++) {
 			colours[i] = colours[i] >= 1.0f ? 0.0f : (colours[i] + 0.01f);
 		}
