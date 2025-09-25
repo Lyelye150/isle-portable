@@ -112,8 +112,8 @@ int main(int argc, char** argv)
 		GX2SetFetchShader(&group.fetchShader);
 		GX2SetVertexShader(group.vertexShader);
 		GX2SetPixelShader(group.pixelShader);
-		GX2SetAttribBuffer(0, GX2RGetGpuAddr(&positionBuffer), positionBuffer.elemSize, 0);
-		GX2SetAttribBuffer(1, GX2RGetGpuAddr(&colourBuffer), colourBuffer.elemSize, 0);
+		GX2SetAttribBuffer(0, positionBuffer.gpuAddr, positionBuffer.elemSize, 0);
+		GX2SetAttribBuffer(1, colourBuffer.gpuAddr, colourBuffer.elemSize, 0);
 		GX2DrawEx(GX2_PRIMITIVE_MODE_TRIANGLES, 3, 0, 1);
 		WHBGfxFinishRenderTV();
 
@@ -122,8 +122,8 @@ int main(int argc, char** argv)
 		GX2SetFetchShader(&group.fetchShader);
 		GX2SetVertexShader(group.vertexShader);
 		GX2SetPixelShader(group.pixelShader);
-		GX2SetAttribBuffer(0, GX2RGetGpuAddr(&positionBuffer), positionBuffer.elemSize, 0);
-		GX2SetAttribBuffer(1, GX2RGetGpuAddr(&colourBuffer), colourBuffer.elemSize, 0);
+		GX2SetAttribBuffer(0, positionBuffer.gpuAddr, positionBuffer.elemSize, 0);
+		GX2SetAttribBuffer(1, colourBuffer.gpuAddr, colourBuffer.elemSize, 0);
 		GX2DrawEx(GX2_PRIMITIVE_MODE_TRIANGLES, 3, 0, 1);
 		WHBGfxFinishRenderDRC();
 
