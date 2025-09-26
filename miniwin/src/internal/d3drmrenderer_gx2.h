@@ -11,6 +11,7 @@
 #include <gx2/surface.h>
 #include <gx2/texture.h>
 #include <gx2r/buffer.h>
+#include <stdint.h>
 #include <vector>
 #include <wut.h>
 
@@ -27,7 +28,7 @@ struct GX2MeshCacheEntry {
 	int version = 0;
 	D3DRMVERTEX* vbo = nullptr;
 	int vertexCount = 0;
-	u32* gx2VBO = nullptr;
+	uint32_t* gx2VBO = nullptr;
 };
 
 class GX2Renderer : public Direct3DRMRenderer {
