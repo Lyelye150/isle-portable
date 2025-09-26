@@ -275,14 +275,12 @@ target_include_directories(lego1 PRIVATE "${CMAKE_SOURCE_DIR}/LEGO1")
 target_link_libraries(lego1 PRIVATE Vec::Vec)
 
 # mxdirectx sources
-if(NOT WIIU)
 target_sources(lego1 PRIVATE
   LEGO1/mxdirectx/mxdirect3d.cpp
   LEGO1/mxdirectx/mxdirectdraw.cpp
   LEGO1/mxdirectx/mxdirectxinfo.cpp
   LEGO1/mxdirectx/legodxinfo.cpp
 )
-endif()
 target_include_directories(lego1 PRIVATE "${CMAKE_SOURCE_DIR}/LEGO1")
 if (WIN32)
   target_link_libraries(lego1 PRIVATE ddraw)
