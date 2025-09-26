@@ -90,7 +90,7 @@ if(NINTENDO_3DS)
   endif()
 endif()
 
-if(WIIU)
+if(NOT WIIU) # OFF FOR NOW
   message(STATUS "Enabling GX2 renderer")
   target_sources(miniwin PRIVATE src/internal/d3drmrenderer_gx2stub.cpp)
   target_sources(miniwin PRIVATE src/d3drm/backends/gx2/renderer.cpp)
