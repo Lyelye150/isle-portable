@@ -153,8 +153,24 @@ jobs:
               -DISLE_DEBUG=${{ matrix.debug || 'OFF' }} \
               -Werror=dev"
 
+      - name: Configure (Wii U)
+        if: ${{ matrix.wiiu }}
+        run: |
+          ${{ matrix.cmake-wrapper || '' }} cmake -S . -B build -G "${{ matrix.generator }}" \
+            ${{ matrix.cmake-args || '' }} \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DISLE_USE_DX5=${{ !!matrix.dx5 }} \
+            -DISLE_BUILD_CONFIG=${{ !!matrix.config }} \
+            -DISLE_BUILD_ASSETS=${{ !!matrix.build-assets }} \
+            -DENABLE_CLANG_TIDY=${{ !!matrix.clang-tidy  }} \
+            -DISLE_WERROR=${{ !!matrix.werror }} \
+            -DISLE_DEBUG=${{ matrix.debug || 'OFF' }} \
+            -DCMAKE_C_FLAGS_RELEASE="-mno-relax" \
+            -DCMAKE_CXX_FLAGS_RELEASE="-mno-relax" \
+            -Werror=dev
+
       - name: Configure (CMake)
-        if: ${{ !matrix.android }}
+        if: ${{ !matrix.android && !matrix.wiiu }}
         run: |
           ${{ matrix.cmake-wrapper || '' }} cmake -S . -B build -G "${{ matrix.generator }}" \
             ${{ matrix.cmake-args || '' }} \
